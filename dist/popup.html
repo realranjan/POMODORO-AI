@@ -1,0 +1,2379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --primary: #5D5FEF;
+      --primary-dark: #4547CE;
+      --secondary: #FF5757;
+      --success: #38B000;
+      --bg-light: #F9FAFE;
+      --bg-white: #FFFFFF;
+      --text-dark: #1D1E2C;
+      --text-muted: #666888;
+      --border-color: #E0E2F6;
+      --break-color: #9CDAFF;
+      --break-color-dark: #2196F3;
+      --box-shadow: rgba(93, 95, 239, 0.15);
+      --timer-height: 200px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 360px;
+      height: 580px;
+      font-family: 'Inter', sans-serif;
+      background-color: var(--bg-light);
+      color: var(--text-dark);
+      overflow: hidden;
+    }
+
+    .app-container {
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      transition: all 0.3s ease;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem;
+      background-color: var(--bg-white);
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .logo img {
+      width: 24px;
+      height: 24px;
+    }
+
+    .logo h1 {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+      transition: color 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+    }
+
+    .icon-btn:hover {
+      color: var(--primary);
+      background-color: var(--bg-light);
+    }
+
+    main {
+      flex: 1;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      overflow-y: auto;
+    }
+
+    .timer-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      height: var(--timer-height);
+      position: relative;
+    }
+
+    .timer-circle {
+      position: relative;
+      width: 200px;
+      height: 200px;
+    }
+
+    .timer-progress {
+      transform: rotate(-90deg);
+      transform-origin: center;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .timer-background {
+      fill: none;
+      stroke: var(--border-color);
+      stroke-width: 8;
+    }
+
+    .timer-progress-circle {
+      fill: none;
+      stroke: var(--primary);
+      stroke-width: 8;
+      stroke-linecap: round;
+      transition: stroke-dashoffset 1s linear;
+    }
+
+    .break-mode .timer-progress-circle {
+      stroke: var(--break-color-dark);
+    }
+
+    .timer-text {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 100%;
+    }
+
+    .timer-text .time {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-bottom: -5px;
+    }
+
+    .timer-text .status {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .timer-controls {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1.5rem;
+      width: 100%;
+    }
+
+    .btn {
+      padding: 0.6rem 1.3rem;
+      font-weight: 600;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      font-size: 1rem;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+      box-shadow: 0 4px 14px var(--box-shadow);
+    }
+
+    .btn-primary:hover {
+      background-color: var(--primary-dark);
+      transform: translateY(-2px);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+    }
+
+    .btn-secondary {
+      background-color: var(--bg-white);
+      color: var(--text-dark);
+      border: 1px solid var(--border-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: var(--bg-light);
+    }
+
+    .break-mode .btn-primary {
+      background-color: var(--break-color-dark);
+    }
+
+    .break-mode .btn-primary:hover {
+      background-color: #1976D2;
+    }
+
+    .shortcuts {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 1rem;
+    }
+
+    .shortcut-btn {
+      background-color: var(--bg-white);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 0.8rem 0.5rem;
+      flex: 1;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .shortcut-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    .shortcut-btn.active {
+      border-color: var(--primary);
+      background-color: rgba(93, 95, 239, 0.05);
+    }
+
+    .shortcut-btn.active::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background-color: var(--primary);
+    }
+
+    .break-mode .shortcut-btn.active {
+      border-color: var(--break-color-dark);
+      background-color: rgba(33, 150, 243, 0.05);
+    }
+
+    .break-mode .shortcut-btn.active::before {
+      background-color: var(--break-color-dark);
+    }
+
+    .shortcut-btn .time {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .shortcut-btn .label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .card {
+      background-color: var(--bg-white);
+      border-radius: 12px;
+      padding: 1rem;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      transition: transform 0.3s, box-shadow 0.3s;
+    }
+
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.8rem;
+    }
+
+    .card-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .suggestions-container {
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .suggestions-container p {
+      margin-bottom: 0.5rem;
+    }
+
+    .suggestions-container ul {
+      padding-left: 1.5rem;
+    }
+
+    .history-container {
+      max-height: 120px;
+      overflow-y: auto;
+      margin-top: 0.5rem;
+      padding-right: 5px;
+    }
+
+    .history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.85rem;
+    }
+
+    .history-item:last-child {
+      border-bottom: none;
+    }
+
+    .history-date {
+      color: var(--text-muted);
+      font-size: 0.8rem;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltip-text {
+      visibility: hidden;
+      width: 120px;
+      background-color: var(--text-dark);
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 125%;
+      left: 50%;
+      margin-left: -60px;
+      opacity: 0;
+      transition: opacity 0.3s;
+      font-size: 0.75rem;
+    }
+
+    .tooltip:hover .tooltip-text {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .fade-in {
+      animation: fadeIn 0.5s ease-in;
+    }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: var(--bg-light);
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #CCD0F1;
+      border-radius: 6px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #AAAFE8;
+    }
+
+    /* Break mode */
+    .break-mode {
+      background-color: #E3F2FD;
+    }
+
+    .break-mode header {
+      background-color: var(--bg-white);
+    }
+
+    .break-mode .card {
+      background-color: var(--bg-white);
+    }
+
+    /* Loading indicator for AI suggestions */
+    .loading {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      height: 60px;
+    }
+
+    .dot-flashing {
+      position: relative;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite linear alternate;
+      animation-delay: 0.5s;
+    }
+
+    .dot-flashing::before, .dot-flashing::after {
+      content: '';
+      display: inline-block;
+      position: absolute;
+      top: 0;
+    }
+
+    .dot-flashing::before {
+      left: -10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite alternate;
+      animation-delay: 0s;
+    }
+
+    .dot-flashing::after {
+      left: 10px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite alternate;
+      animation-delay: 1s;
+    }
+
+    @keyframes dot-flashing {
+      0% { background-color: var(--primary); }
+      50%, 100% { background-color: rgba(93, 95, 239, 0.2); }
+    }
+
+    /* Settings panel (hidden by default) */
+    .settings-panel {
+      position: absolute;
+      top: 0;
+      right: -360px;
+      width: 360px;
+      height: 100%;
+      background-color: var(--bg-white);
+      z-index: 10;
+      transition: right 0.3s ease;
+      padding: 1rem;
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .settings-panel.open {
+      right: 0;
+    }
+
+    .settings-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .settings-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .settings-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .settings-group {
+      margin-bottom: 1.5rem;
+    }
+
+    .settings-group-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-muted);
+    }
+
+    .settings-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem 0;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    .settings-option-label {
+      font-size: 0.95rem;
+    }
+
+    .switch {
+      position: relative;
+      display: inline-block;
+      width: 40px;
+      height: 20px;
+    }
+
+    .switch input {
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .slider {
+      position: absolute;
+      cursor: pointer;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: #ccc;
+      transition: 0.4s;
+      border-radius: 20px;
+    }
+
+    .slider:before {
+      position: absolute;
+      content: "";
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 2px;
+      background-color: white;
+      transition: 0.4s;
+      border-radius: 50%;
+    }
+
+    input:checked + .slider {
+      background-color: var(--primary);
+    }
+
+    input:checked + .slider:before {
+      transform: translateX(18px);
+    }
+
+    .input-number {
+      width: 50px;
+      text-align: center;
+      padding: 0.25rem;
+      border: 1px solid var(--border-color);
+      border-radius: 4px;
+    }
+
+    .help-text {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 0.25rem;
+    }
+
+    /* Sound settings section */
+    .sound-settings {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .sound-option {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.5rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      background-color: var(--bg-light);
+    }
+
+    .sound-label {
+      font-size: 0.9rem;
+    }
+
+    .sound-controls {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sound-control-btn {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border: none;
+      background-color: var(--bg-white);
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 12px;
+    }
+
+    .sound-control-btn:hover {
+      background-color: var(--primary);
+      color: white;
+    }
+
+    .sound-customize-link {
+      font-size: 0.85rem;
+      color: var(--primary);
+      text-align: center;
+      margin-top: 0.5rem;
+      text-decoration: none;
+    }
+
+    .sound-customize-link:hover {
+      text-decoration: underline;
+    }
+
+    /* Dark mode */
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+
+    body.dark-mode .app-container {
+      background-color: #121212;
+    }
+
+    body.dark-mode header {
+      background-color: #1e1e1e;
+      border-bottom-color: #333;
+    }
+
+    body.dark-mode .card,
+    body.dark-mode .shortcut-btn,
+    body.dark-mode .btn-secondary,
+    body.dark-mode .settings-panel {
+      background-color: #1e1e1e;
+      border-color: #333;
+    }
+
+    body.dark-mode .text-muted,
+    body.dark-mode .card-title,
+    body.dark-mode .history-date,
+    body.dark-mode .shortcut-btn .label {
+      color: #999;
+    }
+
+    body.dark-mode .timer-background {
+      stroke: #333;
+    }
+
+    body.dark-mode .break-mode {
+      background-color: #0c2744;
+    }
+
+    body.dark-mode .break-mode .card,
+    body.dark-mode .break-mode header {
+      background-color: #1e1e1e;
+    }
+
+    body.dark-mode .sound-option {
+      background-color: #252525;
+    }
+
+    body.dark-mode .sound-control-btn {
+      background-color: #333;
+      color: #ccc;
+    }
+
+    /* Goals/Notes feature */
+    .goals-container {
+      position: relative;
+    }
+    
+    .goals-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .goals-header .add-goal {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      height: 24px;
+      width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .goals-header .add-goal:hover {
+      background-color: rgba(93, 95, 239, 0.1);
+    }
+
+    .break-mode .goals-header .add-goal {
+      color: var(--break-color-dark);
+    }
+
+    .break-mode .goals-header .add-goal:hover {
+      background-color: rgba(33, 150, 243, 0.1);
+    }
+
+    .goals-list {
+      margin-top: 0.5rem;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+
+    .goal-item {
+      display: flex;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border-color);
+      font-size: 0.9rem;
+      animation: fadeIn 0.3s;
+    }
+
+    .goal-item:last-child {
+      border-bottom: none;
+    }
+
+    .goal-checkbox {
+      margin-right: 10px;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border: 2px solid var(--border-color);
+      border-radius: 4px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .goal-checkbox:checked {
+      background-color: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .goal-checkbox:checked::after {
+      content: '✓';
+      color: white;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 0.7rem;
+    }
+
+    .break-mode .goal-checkbox:checked {
+      background-color: var(--break-color-dark);
+      border-color: var(--break-color-dark);
+    }
+
+    .goal-text {
+      flex-grow: 1;
+      padding-right: 10px;
+      transition: all 0.2s;
+    }
+
+    .goal-checked .goal-text {
+      text-decoration: line-through;
+      color: var(--text-muted);
+    }
+
+    .goal-delete {
+      color: var(--text-muted);
+      background: none;
+      border: none;
+      font-size: 1rem;
+      cursor: pointer;
+      opacity: 0;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+    }
+
+    .goal-item:hover .goal-delete {
+      opacity: 1;
+    }
+
+    .goal-delete:hover {
+      color: var(--secondary);
+      background-color: rgba(255, 87, 87, 0.1);
+    }
+
+    .add-goal-form {
+      display: flex;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px dashed var(--border-color);
+    }
+
+    .add-goal-input {
+      flex-grow: 1;
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      transition: all 0.2s;
+      font-family: 'Inter', sans-serif;
+      margin-right: 8px;
+    }
+
+    .add-goal-input:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 2px rgba(93, 95, 239, 0.1);
+    }
+
+    .break-mode .add-goal-input:focus {
+      border-color: var(--break-color-dark);
+      box-shadow: 0 0 0 2px rgba(33, 150, 243, 0.1);
+    }
+
+    .add-goal-btn {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-goal-btn:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .break-mode .add-goal-btn {
+      background-color: var(--break-color-dark);
+    }
+
+    .break-mode .add-goal-btn:hover {
+      background-color: #1976D2;
+    }
+
+    .no-goals {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      text-align: center;
+      padding: 10px;
+    }
+
+    /* Insights Panel */
+    .insights-panel {
+      background: var(--section-bg);
+      border-radius: 12px;
+      padding: 16px;
+      margin-top: 15px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+      max-height: 0;
+      transition: max-height 0.3s ease, opacity 0.3s ease, margin-top 0.3s ease;
+      opacity: 0;
+    }
+    
+    .insights-panel.active {
+      max-height: 300px;
+      opacity: 1;
+      margin-top: 15px;
+    }
+    
+    .insights-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+    
+    .insights-header h3 {
+      font-size: 16px;
+      margin: 0;
+      color: var(--text-color);
+    }
+    
+    .insights-stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    
+    .insight-stat {
+      background: var(--button-bg);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .insight-stat .value {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-color);
+      margin-bottom: 4px;
+    }
+    
+    .insight-stat .label {
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+    
+    .recommendation {
+      background: rgba(var(--accent-rgb), 0.1);
+      border-left: 3px solid var(--accent-color);
+      padding: 10px;
+      border-radius: 0 8px 8px 0;
+      font-size: 13px;
+      margin-top: 10px;
+      display: none;
+    }
+    
+    .recommendation.active {
+      display: block;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    .recommendation .recom-title {
+      font-weight: 600;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+    }
+    
+    .recommendation .recom-title i {
+      margin-right: 6px;
+      color: var(--accent-color);
+    }
+    
+    .recommendation .recom-action {
+      text-align: right;
+      margin-top: 8px;
+    }
+    
+    .recommendation button {
+      background: var(--accent-color);
+      border: none;
+      color: white;
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    
+    .recommendation button:hover {
+      background: var(--accent-hover);
+    }
+    
+    .productivity-chart {
+      height: 100px;
+      margin: 12px 0;
+      background: var(--button-bg);
+      border-radius: 6px;
+      padding: 8px;
+      position: relative;
+    }
+    
+    .chart-bar {
+      position: absolute;
+      bottom: 8px;
+      width: 8px;
+      background: var(--accent-color);
+      border-radius: 4px 4px 0 0;
+      transition: height 0.5s ease;
+    }
+    
+    .chart-label {
+      position: absolute;
+      bottom: -18px;
+      font-size: 10px;
+      transform: translateX(-50%);
+      color: var(--text-secondary);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    /* Toggle for insights */
+    .insights-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-top: 12px;
+      font-size: 13px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    
+    .insights-toggle:hover {
+      color: var(--accent-color);
+    }
+    
+    .insights-toggle i {
+      margin-right: 6px;
+    }
+    
+    /* Small tooltip for productivity score */
+    .productivity-tooltip {
+      position: relative;
+      cursor: help;
+    }
+    
+    .productivity-tooltip::after {
+      content: "Your productivity score is calculated based on completion patterns, time of day, and session outcomes";
+      position: absolute;
+      width: 200px;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--section-bg);
+      color: var(--text-color);
+      padding: 8px;
+      border-radius: 6px;
+      font-size: 12px;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.2s, visibility 0.2s;
+      pointer-events: none;
+      z-index: 100;
+    }
+    
+    .productivity-tooltip:hover::after {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* Break Recommendations */
+    .break-recommendation {
+      background-color: var(--bg-white);
+      border-radius: 12px;
+      padding: 1rem;
+      margin: 1rem 0;
+      box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+      border-left: 4px solid var(--break-color-dark);
+    }
+    
+    .recommendation-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+    
+    .recommendation-header h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin: 0;
+    }
+    
+    .recommendation-time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      background-color: var(--bg-light);
+      padding: 2px 8px;
+      border-radius: 12px;
+    }
+    
+    .recommendation-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+    
+    .recommendation-description {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      margin-bottom: 0.8rem;
+      line-height: 1.5;
+    }
+    
+    .recommendation-action {
+      display: flex;
+      justify-content: flex-end;
+    }
+    
+    .recommendation-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background-color: var(--break-color-dark);
+      color: white;
+      text-decoration: none;
+      padding: 6px 12px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+    
+    .recommendation-btn:hover {
+      background-color: #1976D2;
+      transform: translateY(-2px);
+    }
+    
+    body.dark-mode .break-recommendation {
+      background-color: #1e1e1e;
+      border-left-color: var(--break-color-dark);
+    }
+
+    /* Progress Report Panel */
+    .progress-panel {
+      position: absolute;
+      top: 0;
+      right: -360px;
+      width: 360px;
+      height: 100%;
+      background-color: var(--bg-white);
+      z-index: 10;
+      transition: right 0.3s ease;
+      padding: 1rem;
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+    }
+    
+    .progress-panel.open {
+      right: 0;
+    }
+    
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+    
+    .progress-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+    
+    .progress-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+    
+    .progress-summary {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+    
+    .progress-stat {
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .progress-stat .value {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--primary);
+    }
+    
+    .progress-stat .label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    .break-mode .progress-stat .value {
+      color: var(--break-color-dark);
+    }
+    
+    .progress-chart-container {
+      background-color: var(--bg-light);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .progress-chart-title {
+      font-size: 0.9rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text-dark);
+    }
+    
+    .progress-chart {
+      height: 200px;
+      width: 100%;
+      position: relative;
+    }
+    
+    .day-label {
+      position: absolute;
+      bottom: -20px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    
+    .hour-label {
+      position: absolute;
+      left: -25px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    
+    .chart-bar {
+      position: absolute;
+      bottom: 0;
+      background-color: var(--primary);
+      width: 8px;
+      border-radius: 8px 8px 0 0;
+      transition: height 0.5s ease;
+    }
+    
+    .chart-axis {
+      position: absolute;
+      background-color: var(--text-muted);
+      opacity: 0.3;
+    }
+    
+    .chart-x-axis {
+      bottom: 0;
+      left: 25px;
+      right: 0;
+      height: 1px;
+    }
+    
+    .chart-y-axis {
+      bottom: 0;
+      left: 25px;
+      width: 1px;
+      height: 100%;
+    }
+    
+    .break-mode .chart-bar {
+      background-color: var(--break-color-dark);
+    }
+    
+    .insights-list {
+      margin-bottom: 1.5rem;
+    }
+    
+    .insight-item {
+      display: flex;
+      gap: 12px;
+      padding: 12px;
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      margin-bottom: 10px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    }
+    
+    .insight-icon {
+      color: var(--primary);
+      font-size: 1.2rem;
+      margin-top: 2px;
+    }
+    
+    .break-mode .insight-icon {
+      color: var(--break-color-dark);
+    }
+    
+    .insight-content {
+      flex: 1;
+    }
+    
+    .insight-title {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+    
+    .insight-description {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 2rem;
+      color: var(--text-muted);
+    }
+    
+    .empty-state i {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      opacity: 0.5;
+    }
+    
+    .empty-state-title {
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+    }
+    
+    .empty-state-description {
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+    
+    .streak-container {
+      background-color: var(--bg-light);
+      border-radius: 12px;
+      padding: 1rem;
+      margin-bottom: 1.5rem;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      text-align: center;
+    }
+    
+    .streak-value {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 4px;
+      color: var(--primary);
+    }
+    
+    .streak-label {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+    
+    .streak-days {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-top: 12px;
+    }
+    
+    .streak-day {
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      background-color: var(--border-color);
+      position: relative;
+    }
+    
+    .streak-day.active {
+      background-color: var(--primary);
+    }
+    
+    .streak-day.today {
+      border: 2px solid var(--primary);
+      background-color: transparent;
+    }
+    
+    .streak-day-tooltip {
+      position: absolute;
+      top: -30px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--text-dark);
+      color: white;
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 0.7rem;
+      white-space: nowrap;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s;
+      z-index: 10;
+    }
+    
+    .streak-day:hover .streak-day-tooltip {
+      opacity: 1;
+    }
+    
+    body.dark-mode .progress-panel {
+      background-color: #1e1e1e;
+    }
+    
+    body.dark-mode .progress-stat,
+    body.dark-mode .progress-chart-container,
+    body.dark-mode .insight-item,
+    body.dark-mode .streak-container {
+      background-color: #252525;
+    }
+    
+    body.dark-mode .streak-day {
+      background-color: #444;
+    }
+    
+    .date-selector {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+    }
+    
+    .date-range {
+      font-size: 0.9rem;
+      font-weight: 600;
+    }
+    
+    .date-nav {
+      display: flex;
+      gap: 5px;
+    }
+    
+    .date-nav-btn {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 1.2rem;
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: background-color 0.2s;
+    }
+    
+    .date-nav-btn:hover {
+      background-color: var(--bg-light);
+    }
+    
+    .break-mode .date-nav-btn {
+      color: var(--break-color-dark);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .icon-btn-small {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1rem;
+      cursor: pointer;
+      height: 24px;
+      width: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .icon-btn-small:hover {
+      color: var(--primary);
+      background-color: rgba(93, 95, 239, 0.1);
+    }
+
+    .break-mode .icon-btn-small:hover {
+      color: var(--break-color-dark);
+      background-color: rgba(33, 150, 243, 0.1);
+    }
+
+    .goals-header .add-goal:hover {
+      background-color: rgba(93, 95, 239, 0.1);
+    }
+    
+    .priority-indicator {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      height: 20px;
+      border-radius: 4px;
+      margin-right: 8px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: white;
+    }
+    
+    .priority-high {
+      background-color: #FF5252;
+    }
+    
+    .priority-medium {
+      background-color: #FB8C00;
+    }
+    
+    .priority-low {
+      background-color: #4CAF50;
+    }
+    
+    .priority-unset {
+      background-color: var(--border-color);
+      color: var(--text-muted);
+    }
+    
+    .prioritizing {
+      opacity: 0.6;
+      pointer-events: none;
+    }
+    
+    .prioritizing-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(255, 255, 255, 0.8);
+      z-index: 5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      border-radius: 12px;
+    }
+    
+    body.dark-mode .prioritizing-overlay {
+      background-color: rgba(30, 30, 30, 0.8);
+    }
+    
+    .prioritizing-spinner {
+      margin-bottom: 12px;
+    }
+    
+    .prioritizing-spinner.dot-flashing {
+      position: relative;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite linear alternate;
+      animation-delay: 0.5s;
+    }
+    
+    .prioritizing-spinner.dot-flashing::before, 
+    .prioritizing-spinner.dot-flashing::after {
+      content: '';
+      display: inline-block;
+      position: absolute;
+      top: 0;
+    }
+    
+    .prioritizing-spinner.dot-flashing::before {
+      left: -15px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite alternate;
+      animation-delay: 0s;
+    }
+    
+    .prioritizing-spinner.dot-flashing::after {
+      left: 15px;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: var(--primary);
+      animation: dot-flashing 1s infinite alternate;
+      animation-delay: 1s;
+    }
+    
+    .dark-mode .prioritizing-spinner.dot-flashing,
+    .dark-mode .prioritizing-spinner.dot-flashing::before,
+    .dark-mode .prioritizing-spinner.dot-flashing::after {
+      background-color: var(--primary-dark);
+    }
+    
+    .prioritizing-text {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      text-align: center;
+    }
+    
+    .priority-dialog {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      border-radius: 12px;
+      padding: 24px;
+      width: 85%;
+      max-width: 320px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+      animation: fadeIn 0.3s ease-out forwards;
+    }
+    
+    .dark-mode .priority-dialog {
+      background: #2c2c2c;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
+    }
+    
+    .priority-dialog-header {
+      margin-bottom: 16px;
+    }
+    
+    .priority-dialog-title {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      color: var(--text-primary);
+    }
+    
+    .priority-dialog-description {
+      font-size: 13px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+    }
+    
+    .priority-dialog-tasks {
+      margin: 16px 0;
+      max-height: 150px;
+      overflow-y: auto;
+    }
+    
+    .priority-dialog-buttons {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 16px;
+    }
+    
+    .priority-dialog-button {
+      border: none;
+      border-radius: 6px;
+      padding: 8px 16px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+    
+    .priority-dialog-button-confirm {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .priority-dialog-button-confirm:hover {
+      background-color: var(--primary-dark);
+    }
+    
+    .dark-mode .priority-dialog-button-confirm {
+      background-color: var(--primary-dark);
+    }
+    
+    .dark-mode .priority-dialog-button-confirm:hover {
+      background-color: var(--primary);
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translate(-50%, -45%); }
+      to { opacity: 1; transform: translate(-50%, -50%); }
+    }
+
+    /* Gamification Styles */
+    .badge-notification {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: var(--primary);
+      color: white;
+      border-radius: 8px;
+      padding: 12px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .badge-content {
+      flex: 1;
+    }
+
+    .badge-title {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .badge-description {
+      font-size: 13px;
+      opacity: 0.9;
+    }
+
+    .badge-close {
+      background: none;
+      border: none;
+      color: white;
+      font-size: 18px;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s;
+    }
+
+    .badge-close:hover {
+      opacity: 1;
+    }
+
+    .reward-notification {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: var(--bg-white);
+      border-radius: 12px;
+      padding: 16px;
+      width: 90%;
+      max-width: 320px;
+      box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+      z-index: 1000;
+    }
+
+    .dark-mode .reward-notification {
+      background-color: #1e1e1e;
+    }
+
+    .reward-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .reward-title {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--primary);
+    }
+
+    .dark-mode .reward-title {
+      color: var(--primary);
+    }
+
+    .reward-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 18px;
+      cursor: pointer;
+    }
+
+    .reward-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .reward-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background-color: rgba(93, 95, 239, 0.1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      color: var(--primary);
+    }
+
+    .reward-details {
+      flex: 1;
+    }
+
+    .reward-name {
+      font-weight: 600;
+      font-size: 16px;
+      margin-bottom: 4px;
+    }
+
+    .reward-description {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .reward-button {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px;
+      width: 100%;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .reward-button:hover {
+      background-color: var(--primary-dark);
+    }
+
+    .dark-mode .reward-button {
+      background-color: var(--primary-dark);
+    }
+
+    .dark-mode .reward-button:hover {
+      background-color: var(--primary);
+    }
+
+    .confirmation-toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(0, 0, 0, 0.8);
+      color: white;
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 14px;
+      z-index: 1000;
+    }
+
+    .badges-panel {
+      position: absolute;
+      top: 0;
+      right: -360px;
+      width: 360px;
+      height: 100%;
+      background-color: var(--bg-white);
+      z-index: 10;
+      transition: right 0.3s ease;
+      padding: 1rem;
+      box-shadow: -2px 0 10px rgba(0, 0, 0, 0.1);
+      overflow-y: auto;
+    }
+
+    .badges-panel.open {
+      right: 0;
+    }
+
+    .badges-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.5rem;
+    }
+
+    .badges-title {
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .badges-close {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
+    .badges-description {
+      margin-bottom: 1.5rem;
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .badges-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .badge-item {
+      background-color: var(--bg-light);
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      text-align: center;
+      transition: transform 0.2s;
+    }
+
+    .badge-item.earned {
+      transform: scale(1);
+    }
+
+    .badge-item.earned:hover {
+      transform: scale(1.05);
+    }
+
+    .badge-item.locked {
+      opacity: 0.6;
+      filter: grayscale(0.8);
+    }
+
+    .badge-item .badge-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .badge-item .badge-info {
+      flex: 1;
+    }
+
+    .badge-item .badge-name {
+      font-weight: 600;
+      font-size: 0.9rem;
+      margin-bottom: 4px;
+    }
+
+    .badge-item .badge-description {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 0;
+    }
+
+    body.dark-mode .badges-panel {
+      background-color: #1e1e1e;
+    }
+
+    body.dark-mode .badge-item {
+      background-color: #252525;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container" id="container">
+    <header>
+      <div class="logo animate__animated animate__fadeIn">
+        <img src="icons/icon32.png" alt="Pomodoro AI">
+        <h1>Pomodoro AI</h1>
+      </div>
+      <div class="actions">
+        <button class="icon-btn tooltip" id="progress-btn" aria-label="Progress Report">
+          <i class="bi bi-graph-up"></i>
+          <span class="tooltip-text">Weekly Progress</span>
+        </button>
+        <button class="icon-btn tooltip" id="badges-btn" aria-label="Badges">
+          <i class="bi bi-award"></i>
+          <span class="tooltip-text">Badges</span>
+        </button>
+        <button class="icon-btn tooltip" id="settings-btn" aria-label="Settings">
+          <i class="bi bi-gear"></i>
+          <span class="tooltip-text">Settings</span>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <div class="timer-container animate__animated animate__fadeIn">
+        <div class="timer-circle">
+          <svg width="200" height="200" viewBox="0 0 200 200">
+            <circle class="timer-background" cx="100" cy="100" r="90" />
+            <circle class="timer-progress-circle" cx="100" cy="100" r="90" stroke-dasharray="565.48" stroke-dashoffset="0" />
+          </svg>
+          <div class="timer-text">
+            <div class="time"><span id="minutes">25</span>:<span id="seconds">00</span></div>
+            <div class="status" id="status-text">Ready to focus</div>
+          </div>
+        </div>
+        <div class="timer-controls animate__animated animate__fadeIn animate__delay-1s">
+          <button id="start-btn" class="btn btn-primary">
+            <i class="bi bi-play-fill"></i> Start
+          </button>
+          <button id="reset-btn" class="btn btn-secondary">
+            <i class="bi bi-arrow-counterclockwise"></i> Reset
+          </button>
+        </div>
+      </div>
+
+      <div class="shortcuts animate__animated animate__fadeIn animate__delay-1s">
+        <div class="shortcut-btn active" data-time="25" data-type="pomodoro">
+          <div class="time">25</div>
+          <div class="label">Pomodoro</div>
+        </div>
+        <div class="shortcut-btn" data-time="5" data-type="shortBreak">
+          <div class="time">5</div>
+          <div class="label">Short Break</div>
+        </div>
+        <div class="shortcut-btn" data-time="15" data-type="longBreak">
+          <div class="time">15</div>
+          <div class="label">Long Break</div>
+        </div>
+      </div>
+
+      <div class="card animate__animated animate__fadeIn animate__delay-1s">
+        <div class="card-header goals-header">
+          <div class="card-title">Goals & Tasks</div>
+          <div class="header-actions">
+            <button class="icon-btn-small tooltip" id="prioritize-tasks" aria-label="Prioritize Tasks">
+              <i class="bi bi-sort-down"></i>
+              <span class="tooltip-text">Prioritize Tasks</span>
+            </button>
+            <button class="add-goal" id="toggle-add-goal" aria-label="Add new goal">
+              <i class="bi bi-plus-circle"></i>
+            </button>
+          </div>
+        </div>
+        <div class="goals-container">
+          <div class="goals-list" id="goals-list">
+            <!-- Goals will be added here dynamically -->
+            <div class="no-goals">No tasks yet. Add one below!</div>
+          </div>
+          <div class="add-goal-form" id="add-goal-form" style="display: none;">
+            <input type="text" class="add-goal-input" id="add-goal-input" placeholder="Add a new task..." aria-label="New task text">
+            <button class="add-goal-btn" id="add-goal-btn">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card animate__animated animate__fadeIn animate__delay-2s">
+        <div class="card-header">
+          <div class="card-title">AI Productivity Tips</div>
+        </div>
+        <div class="suggestions-container" id="suggestions-container">
+          <div class="loading">
+            <div class="dot-flashing"></div>
+            <span>Loading AI tips</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="card animate__animated animate__fadeIn animate__delay-2s">
+        <div class="card-header">
+          <div class="card-title">Recent Sessions</div>
+        </div>
+        <div class="history-container">
+          <ul id="history-list"></ul>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Settings Panel -->
+  <div class="settings-panel" id="settings-panel">
+    <div class="settings-header">
+      <div class="settings-title">Settings</div>
+      <button class="settings-close" id="settings-close">×</button>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Timer</div>
+      <div class="settings-option">
+        <label for="pomodoro-duration" class="settings-option-label">Pomodoro Duration</label>
+        <input type="number" class="input-number" id="pomodoro-duration" min="1" max="60" value="25" aria-label="Pomodoro Duration in minutes"> min
+      </div>
+      <div class="settings-option">
+        <label for="short-break-duration" class="settings-option-label">Short Break Duration</label>
+        <input type="number" class="input-number" id="short-break-duration" min="1" max="30" value="5" aria-label="Short Break Duration in minutes"> min
+      </div>
+      <div class="settings-option">
+        <label for="long-break-duration" class="settings-option-label">Long Break Duration</label>
+        <input type="number" class="input-number" id="long-break-duration" min="5" max="60" value="15" aria-label="Long Break Duration in minutes"> min
+      </div>
+      <div class="settings-option">
+        <label for="auto-start-breaks" class="settings-option-label">Auto-start Breaks</label>
+        <label class="switch">
+          <input type="checkbox" id="auto-start-breaks" aria-label="Auto-start Breaks">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-option">
+        <label for="auto-start-pomodoros" class="settings-option-label">Auto-start Pomodoros</label>
+        <label class="switch">
+          <input type="checkbox" id="auto-start-pomodoros" aria-label="Auto-start Pomodoros">
+          <span class="slider"></span>
+        </label>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Notifications</div>
+      <div class="settings-option">
+        <label for="show-notifications" class="settings-option-label">Show Notifications</label>
+        <label class="switch">
+          <input type="checkbox" id="show-notifications" checked aria-label="Show Notifications">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-option">
+        <label for="play-sounds" class="settings-option-label">Play Sounds</label>
+        <label class="switch">
+          <input type="checkbox" id="play-sounds" checked aria-label="Play Sounds">
+          <span class="slider"></span>
+        </label>
+      </div>
+
+      <div class="sound-settings">
+        <div class="sound-option">
+          <div class="sound-label">Start Sound</div>
+          <div class="sound-controls">
+            <button class="sound-control-btn" id="test-start-sound" aria-label="Test Start Sound">
+              <i class="bi bi-play-fill"></i>
+            </button>
+          </div>
+        </div>
+        <div class="sound-option">
+          <div class="sound-label">Break Sound</div>
+          <div class="sound-controls">
+            <button class="sound-control-btn" id="test-break-sound" aria-label="Test Break Sound">
+              <i class="bi bi-play-fill"></i>
+            </button>
+          </div>
+        </div>
+        <div class="sound-option">
+          <div class="sound-label">Complete Sound</div>
+          <div class="sound-controls">
+            <button class="sound-control-btn" id="test-complete-sound" aria-label="Test Complete Sound">
+              <i class="bi bi-play-fill"></i>
+            </button>
+          </div>
+        </div>
+        <a href="sounds/sound-selector.html" target="_blank" rel="noopener noreferrer" class="sound-customize-link">
+          <i class="bi bi-sliders"></i> Customize Sounds
+        </a>
+      </div>
+    </div>
+
+    <div class="settings-group">
+      <div class="settings-group-title">Other</div>
+      <div class="settings-option">
+        <label for="dark-mode" class="settings-option-label">Dark Mode</label>
+        <label class="switch">
+          <input type="checkbox" id="dark-mode" aria-label="Dark Mode">
+          <span class="slider"></span>
+        </label>
+      </div>
+      <div class="settings-option">
+        <label for="ai-suggestions" class="settings-option-label">AI Suggestions</label>
+        <label class="switch">
+          <input type="checkbox" id="ai-suggestions" checked aria-label="AI Suggestions">
+          <span class="slider"></span>
+        </label>
+        <div class="help-text">Show productivity tips from our AI assistant</div>
+      </div>
+      <div class="settings-option">
+        <label for="adaptive-timing" class="settings-option-label">Adaptive Time Management</label>
+        <label class="switch">
+          <input type="checkbox" id="adaptive-timing" aria-label="Adaptive Time Management">
+          <span class="slider"></span>
+        </label>
+        <div class="help-text">AI analyzes your productivity patterns and suggests optimal focus durations</div>
+      </div>
+      <div class="settings-option">
+        <label for="break-recommendations" class="settings-option-label">Personalized Break Activities</label>
+        <label class="switch">
+          <input type="checkbox" id="break-recommendations" checked aria-label="Personalized Break Activities">
+          <span class="slider"></span>
+        </label>
+        <div class="help-text">Get personalized recommendations for break activities based on your work patterns</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Insights Toggle -->
+  <div class="insights-toggle">
+    <i class="bi bi-graph-up"></i> <span>View Productivity Insights</span>
+  </div>
+
+  <!-- Insights Panel -->
+  <div class="insights-panel">
+    <div class="insights-header">
+      <h3>Productivity Insights</h3>
+      <span class="close-insights"><i class="bi bi-x"></i></span>
+    </div>
+    
+    <div class="insights-stats">
+      <div class="insight-stat">
+        <div class="value" id="productivity-score">--</div>
+        <div class="label productivity-tooltip">Productivity Score</div>
+      </div>
+      <div class="insight-stat">
+        <div class="value" id="optimal-duration">--</div>
+        <div class="label">Optimal Duration</div>
+      </div>
+    </div>
+    
+    <div class="productivity-chart" id="productivity-chart">
+      <!-- Chart bars will be added via JavaScript -->
+    </div>
+    
+    <div class="recommendation" id="adaptive-recommendation">
+      <div class="recom-title">
+        <i class="bi bi-lightning-charge"></i> 
+        <span>Recommendation</span>
+      </div>
+      <div class="recom-text" id="recommendation-text">Based on your productivity patterns, a 20-minute focus session might work better for you.</div>
+      <div class="recom-action">
+        <button id="apply-recommendation">Apply</button>
+        <button id="dismiss-recommendation">Dismiss</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Progress Report Panel -->
+  <div class="progress-panel" id="progress-panel">
+    <div class="progress-header">
+      <div class="progress-title">Weekly Progress</div>
+      <button class="progress-close" id="progress-close">×</button>
+    </div>
+    
+    <div class="date-selector">
+      <div class="date-range" id="date-range">Nov 5 - Nov 11, 2023</div>
+      <div class="date-nav">
+        <button class="date-nav-btn" id="prev-week" aria-label="Previous Week">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button class="date-nav-btn" id="next-week" aria-label="Next Week">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+    
+    <div class="progress-summary">
+      <div class="progress-stat">
+        <div class="value" id="total-pomodoros">0</div>
+        <div class="label">Total Focus Sessions</div>
+      </div>
+      <div class="progress-stat">
+        <div class="value" id="total-time">0h</div>
+        <div class="label">Hours Focused</div>
+      </div>
+      <div class="progress-stat">
+        <div class="value" id="avg-rating">0%</div>
+        <div class="label">Avg. Productivity</div>
+      </div>
+      <div class="progress-stat">
+        <div class="value" id="completion-rate">0%</div>
+        <div class="label">Completion Rate</div>
+      </div>
+    </div>
+    
+    <div class="streak-container">
+      <div class="streak-value" id="current-streak">0</div>
+      <div class="streak-label">Day Streak</div>
+      <div class="streak-days" id="streak-days">
+        <!-- Streak days will be added here dynamically -->
+      </div>
+    </div>
+    
+    <div class="progress-chart-container">
+      <div class="progress-chart-title">Daily Focus Time (hours)</div>
+      <div class="progress-chart" id="focus-time-chart">
+        <!-- Chart will be rendered here -->
+        <div class="chart-axis chart-x-axis"></div>
+        <div class="chart-axis chart-y-axis"></div>
+      </div>
+    </div>
+    
+    <div class="progress-chart-container">
+      <div class="progress-chart-title">Productivity by Time of Day</div>
+      <div class="progress-chart" id="productivity-time-chart">
+        <!-- Chart will be rendered here -->
+        <div class="chart-axis chart-x-axis"></div>
+        <div class="chart-axis chart-y-axis"></div>
+      </div>
+    </div>
+    
+    <h3 style="margin: 1.5rem 0 1rem; font-size: 1rem;">AI Insights</h3>
+    
+    <div class="insights-list" id="ai-insights">
+      <!-- Insights will be added here dynamically -->
+    </div>
+  </div>
+
+  <!-- Badges Panel -->
+  <div id="badges-panel" class="badges-panel">
+    <div class="badges-header">
+      <h2 class="badges-title">Your Achievements</h2>
+      <button id="badges-close" class="badges-close">&times;</button>
+    </div>
+    <p class="badges-description">
+      Complete Pomodoro cycles to earn badges and unlock rewards. Each badge represents 
+      a milestone in your productivity journey.
+    </p>
+    <div class="badges-grid" id="badges-grid">
+      <!-- Badges will be dynamically inserted here -->
+    </div>
+  </div>
+
+  <!-- Templates for notifications -->
+  <template id="badge-notification-template">
+    <div class="badge-notification">
+      <div class="badge-icon">
+        <i class="fas fa-award"></i>
+      </div>
+      <div class="badge-content">
+        <div class="badge-title">New Badge Earned!</div>
+        <div class="badge-description">You've unlocked: <span class="badge-name"></span></div>
+      </div>
+      <button class="badge-close">&times;</button>
+    </div>
+  </template>
+
+  <template id="reward-notification-template">
+    <div class="reward-notification">
+      <div class="reward-header">
+        <div class="reward-title">You Deserve a Reward!</div>
+        <button class="reward-close">&times;</button>
+      </div>
+      <div class="reward-content">
+        <div class="reward-icon">
+          <i class="fas fa-gift"></i>
+        </div>
+        <div class="reward-details">
+          <div class="reward-name"></div>
+          <div class="reward-description">Take a moment to enjoy this reward after your hard work.</div>
+        </div>
+      </div>
+      <button class="reward-button">Claim Reward</button>
+    </div>
+  </template>
+
+  <script src="gamification.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html> 

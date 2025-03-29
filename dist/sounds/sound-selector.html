@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pomodoro AI Sound Selector</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
+      background-color: #f5f5f5;
+      color: #333;
+      line-height: 1.6;
+    }
+    h1, h2, h3 {
+      color: #3f51b5;
+    }
+    .container {
+      background-color: white;
+      border-radius: 5px;
+      padding: 20px;
+      margin-bottom: 25px;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+    .sound-category {
+      margin-bottom: 30px;
+    }
+    .sound-item {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      border-bottom: 1px solid #eee;
+    }
+    .sound-item:last-child {
+      border-bottom: none;
+    }
+    .play-button {
+      background-color: #3f51b5;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      margin-right: 15px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .play-button:hover {
+      background-color: #303f9f;
+    }
+    .sound-name {
+      flex-grow: 1;
+    }
+    .select-button {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+    .select-button:hover {
+      background-color: #45a049;
+    }
+    .selected {
+      background-color: #e8f5e9;
+    }
+    .note {
+      background-color: #e8f5e9;
+      border-left: 5px solid #4caf50;
+      padding: 10px 15px;
+      margin-bottom: 20px;
+    }
+    .button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 15px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-block;
+      margin: 10px 5px;
+    }
+    .button:hover {
+      background-color: #45a049;
+    }
+    .button-secondary {
+      background-color: #3f51b5;
+    }
+    .button-secondary:hover {
+      background-color: #303f9f;
+    }
+    .button-container {
+      text-align: center;
+      margin-top: 20px;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .file-upload {
+      display: inline-block;
+      background-color: #757575;
+      color: white;
+      padding: 10px 15px;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    .file-upload:hover {
+      background-color: #616161;
+    }
+    .custom-sound {
+      display: flex;
+      align-items: center;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-radius: 5px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Pomodoro AI Sound Selector</h1>
+  
+  <div class="note">
+    <h3>How to Use This Tool</h3>
+    <p>Listen to different sounds for each Pomodoro event. Select the ones you like, then download the configured sound pack to use with your Pomodoro extension.</p>
+    <p>You can also upload your own custom sounds for each event.</p>
+  </div>
+
+  <div class="container">
+    <div class="sound-category">
+      <h2>Start Sounds</h2>
+      <p>These sounds will play when you start a Pomodoro session.</p>
+      
+      <div class="sound-item" id="start-1">
+        <button class="play-button" onclick="playSound('sounds/start-1.mp3')">▶</button>
+        <div class="sound-name">Clock Tick</div>
+        <button class="select-button" onclick="selectSound('start', 'start-1')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="start-2">
+        <button class="play-button" onclick="playSound('sounds/start-2.mp3')">▶</button>
+        <div class="sound-name">Soft Notification</div>
+        <button class="select-button" onclick="selectSound('start', 'start-2')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="start-3">
+        <button class="play-button" onclick="playSound('sounds/start-3.mp3')">▶</button>
+        <div class="sound-name">Gentle Bell</div>
+        <button class="select-button" onclick="selectSound('start', 'start-3')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="start-4">
+        <button class="play-button" onclick="playSound('sounds/start-4.mp3')">▶</button>
+        <div class="sound-name">Computer Click</div>
+        <button class="select-button" onclick="selectSound('start', 'start-4')">Select</button>
+      </div>
+
+      <div class="custom-sound">
+        <label class="file-upload">
+          Upload Custom Start Sound
+          <input type="file" id="start-custom" accept="audio/*" onchange="handleCustomSound('start')">
+        </label>
+        <div id="start-custom-name">No file selected</div>
+        <button class="play-button" id="start-custom-play" style="display: none;" onclick="playCustomSound('start')">▶</button>
+      </div>
+    </div>
+
+    <div class="sound-category">
+      <h2>Break Sounds</h2>
+      <p>These sounds will play when a Pomodoro completes and a break begins.</p>
+      
+      <div class="sound-item" id="break-1">
+        <button class="play-button" onclick="playSound('sounds/break-1.mp3')">▶</button>
+        <div class="sound-name">Success Chime</div>
+        <button class="select-button" onclick="selectSound('break', 'break-1')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="break-2">
+        <button class="play-button" onclick="playSound('sounds/break-2.mp3')">▶</button>
+        <div class="sound-name">Achievement Bell</div>
+        <button class="select-button" onclick="selectSound('break', 'break-2')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="break-3">
+        <button class="play-button" onclick="playSound('sounds/break-3.mp3')">▶</button>
+        <div class="sound-name">Cheerful Ding</div>
+        <button class="select-button" onclick="selectSound('break', 'break-3')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="break-4">
+        <button class="play-button" onclick="playSound('sounds/break-4.mp3')">▶</button>
+        <div class="sound-name">Task Complete</div>
+        <button class="select-button" onclick="selectSound('break', 'break-4')">Select</button>
+      </div>
+
+      <div class="custom-sound">
+        <label class="file-upload">
+          Upload Custom Break Sound
+          <input type="file" id="break-custom" accept="audio/*" onchange="handleCustomSound('break')">
+        </label>
+        <div id="break-custom-name">No file selected</div>
+        <button class="play-button" id="break-custom-play" style="display: none;" onclick="playCustomSound('break')">▶</button>
+      </div>
+    </div>
+
+    <div class="sound-category">
+      <h2>Complete Sounds</h2>
+      <p>These sounds will play when a break ends and it's time to get back to work.</p>
+      
+      <div class="sound-item" id="complete-1">
+        <button class="play-button" onclick="playSound('sounds/complete-1.mp3')">▶</button>
+        <div class="sound-name">Start Work Alert</div>
+        <button class="select-button" onclick="selectSound('complete', 'complete-1')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="complete-2">
+        <button class="play-button" onclick="playSound('sounds/complete-2.mp3')">▶</button>
+        <div class="sound-name">Alert Tone</div>
+        <button class="select-button" onclick="selectSound('complete', 'complete-2')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="complete-3">
+        <button class="play-button" onclick="playSound('sounds/complete-3.mp3')">▶</button>
+        <div class="sound-name">Focus Bell</div>
+        <button class="select-button" onclick="selectSound('complete', 'complete-3')">Select</button>
+      </div>
+      
+      <div class="sound-item" id="complete-4">
+        <button class="play-button" onclick="playSound('sounds/complete-4.mp3')">▶</button>
+        <div class="sound-name">Energy Chime</div>
+        <button class="select-button" onclick="selectSound('complete', 'complete-4')">Select</button>
+      </div>
+
+      <div class="custom-sound">
+        <label class="file-upload">
+          Upload Custom Complete Sound
+          <input type="file" id="complete-custom" accept="audio/*" onchange="handleCustomSound('complete')">
+        </label>
+        <div id="complete-custom-name">No file selected</div>
+        <button class="play-button" id="complete-custom-play" style="display: none;" onclick="playCustomSound('complete')">▶</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container">
+    <h2>Your Selected Sounds</h2>
+    <div id="selected-sounds">
+      <p>Start Sound: <span id="selected-start">None</span></p>
+      <p>Break Sound: <span id="selected-break">None</span></p>
+      <p>Complete Sound: <span id="selected-complete">None</span></p>
+    </div>
+    <div class="button-container">
+      <button class="button" onclick="downloadSelectedSounds()">Download Selected Sounds</button>
+      <a href="free-sounds.html" class="button button-secondary">Back to Free Sounds</a>
+    </div>
+  </div>
+
+  <script>
+    // Audio elements for playing sounds
+    let currentAudio = null;
+    const selectedSounds = {
+      start: null,
+      break: null,
+      complete: null
+    };
+    const customSounds = {
+      start: null,
+      break: null,
+      complete: null
+    };
+
+    // Play a pre-defined sound
+    function playSound(soundUrl) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      
+      currentAudio = new Audio(soundUrl);
+      currentAudio.play();
+    }
+
+    // Handle custom sound upload
+    function handleCustomSound(type) {
+      const fileInput = document.getElementById(`${type}-custom`);
+      const file = fileInput.files[0];
+      
+      if (file) {
+        document.getElementById(`${type}-custom-name`).textContent = file.name;
+        document.getElementById(`${type}-custom-play`).style.display = 'flex';
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          customSounds[type] = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      }
+    }
+
+    // Play a custom uploaded sound
+    function playCustomSound(type) {
+      if (currentAudio) {
+        currentAudio.pause();
+        currentAudio = null;
+      }
+      
+      if (customSounds[type]) {
+        currentAudio = new Audio(customSounds[type]);
+        currentAudio.play();
+      }
+    }
+
+    // Select a sound for a specific event type
+    function selectSound(type, soundId) {
+      // Clear previous selection
+      const previousSelection = document.querySelector(`.sound-item.selected[id^="${type}"]`);
+      if (previousSelection) {
+        previousSelection.classList.remove('selected');
+      }
+      
+      // If selecting a pre-defined sound
+      if (soundId !== 'custom') {
+        document.getElementById(soundId).classList.add('selected');
+        selectedSounds[type] = soundId;
+        document.getElementById(`selected-${type}`).textContent = document.querySelector(`#${soundId} .sound-name`).textContent;
+      } 
+      // If selecting a custom sound
+      else if (customSounds[type]) {
+        selectedSounds[type] = 'custom';
+        document.getElementById(`selected-${type}`).textContent = document.getElementById(`${type}-custom-name`).textContent;
+      }
+    }
+
+    // Download the selected sounds package
+    function downloadSelectedSounds() {
+      // In a real implementation, this would create a zip file with the selected sounds
+      // For this demo, we'll just show an alert
+      
+      if (!selectedSounds.start && !selectedSounds.break && !selectedSounds.complete) {
+        alert("Please select at least one sound before downloading.");
+        return;
+      }
+      
+      const soundList = [];
+      
+      if (selectedSounds.start) {
+        soundList.push(`Start: ${document.getElementById('selected-start').textContent}`);
+      }
+      
+      if (selectedSounds.break) {
+        soundList.push(`Break: ${document.getElementById('selected-break').textContent}`);
+      }
+      
+      if (selectedSounds.complete) {
+        soundList.push(`Complete: ${document.getElementById('selected-complete').textContent}`);
+      }
+      
+      alert(`Selected sounds: \n${soundList.join('\n')}\n\nIn a real implementation, these sounds would be downloaded as a package.`);
+    }
+  </script>
+</body>
+</html> 
