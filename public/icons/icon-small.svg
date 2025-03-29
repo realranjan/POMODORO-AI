@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <!-- Background circle -->
+  <circle cx="24" cy="24" r="22" fill="#e74c3c" />
+  
+  <!-- Tomato highlight -->
+  <circle cx="17" cy="17" r="6" fill="#f39c12" opacity="0.3" />
+  
+  <!-- Stem -->
+  <path d="M24 2 Q27 5 27 9 Q31 8 29 5 Q32 3 34 8 L29 10 Q24 12 19 10 L14 8 Q16 3 19 5 Q17 8 21 9 Q21 5 24 2" fill="#27ae60" />
+  
+  <!-- Simple circuit/AI patterns -->
+  <g fill="none" stroke="#fff" stroke-width="1">
+    <path d="M12 20 H18 Q20 20 20 22 V28 H36" />
+    <path d="M12 30 H28 V25 Q28 23 30 23 H36" />
+    <circle cx="18" cy="20" r="1.5" fill="#fff" />
+    <circle cx="28" cy="30" r="1.5" fill="#fff" />
+  </g>
+</svg> 

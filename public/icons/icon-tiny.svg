@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- Background circle -->
+  <circle cx="8" cy="8" r="7" fill="#e74c3c" />
+  
+  <!-- Simple stem -->
+  <path d="M8 1 L10 3 L8 4 L6 3 Z" fill="#27ae60" />
+  
+  <!-- Minimal AI circuit pattern -->
+  <path d="M4 7 H6 V9 H12" stroke="#fff" stroke-width="0.75" fill="none" />
+  <path d="M4 10 H8 V8 H12" stroke="#fff" stroke-width="0.75" fill="none" />
+</svg> 
