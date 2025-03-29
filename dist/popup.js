@@ -1,19 +1,21 @@
-// Google API key for AI functionality
-const API_KEY = 'AIzaSyAUVuas3PtGUedngTIgxIvJNiJ2T33b54g'; // Replace with your own API key from Google AI Studio
+// Audio polyfill for environments where Audio is not defined
+if (typeof Audio === 'undefined') {
+  class Audio {
+    constructor(url) {
+      this.url = url;
+    }
+    
+    play() {
+      console.log('Audio playback not supported in this context');
+      return Promise.resolve();
+    }
+  }
+  
+  window.Audio = Audio;
+}
 
-// Fallback productivity tips when API is not available
-const FALLBACK_TIPS = [
-  "Focus on one task at a time for maximum concentration.",
-  "Use the two-minute rule: if a task takes less than two minutes, do it now.",
-  "Clear your workspace before starting a Pomodoro session.",
-  "Write down distracting thoughts to revisit later.",
-  "Stay hydrated during your breaks for better cognitive function.",
-  "Set a clear goal for each Pomodoro session before starting.",
-  "Try the 'forced distraction' approach: decide in advance what you'll do during breaks.",
-  "Batch similar tasks together to minimize context switching.",
-  "Put your phone in Do Not Disturb mode during focus sessions.",
-  "Track your progress to stay motivated and identify improvement areas."
-];
+// Google API key for AI functionality
+const API_KEY = 'AIzaSyAUVuas3PtGUedngTIgxIvJNiJ2T33b54g'; 
 
 // DOM Elements
 const minutesElement = document.getElementById('minutes');
@@ -513,6 +515,12 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Add event listener for badges button
   badgesButton.addEventListener('click', openBadgesPanel);
+  
+  // Add audio test button event listener
+  const testAudioBtn = document.getElementById('test-audio-btn');
+  if (testAudioBtn) {
+    testAudioBtn.addEventListener('click', testAudioPlayback);
+  }
 });
 
 // Save consecutive Pomodoros count on popup close
@@ -556,30 +564,10 @@ function createBadgesPanel() {
 }
 
 function populateBadgesGrid() {
-  const badgesGrid = document.getElementById('badges-grid');
-  if (!badgesGrid) return;
-  
-  badgesGrid.innerHTML = '';
-  
-  // Create all available badges (earned and locked)
-  Object.values(BADGES).forEach(badge => {
-    const isEarned = earnedBadges.some(earnedBadge => earnedBadge.id === badge.id);
-    
-    const badgeElement = document.createElement('div');
-    badgeElement.className = `badge-item ${isEarned ? 'earned' : 'locked'}`;
-    
-    badgeElement.innerHTML = `
-      <div class="badge-icon" style="background-color: ${isEarned ? badge.color : '#cccccc'}">
-        <i class="bi ${badge.icon}"></i>
-      </div>
-      <div class="badge-info">
-        <div class="badge-name">${badge.name}</div>
-        <div class="badge-description">${badge.description}</div>
-      </div>
-    `;
-    
-    badgesGrid.appendChild(badgeElement);
-  });
+  // Use gamification.updateBadgesDisplay instead
+  if (window.gamification && window.gamification.updateBadgesDisplay) {
+    window.gamification.updateBadgesDisplay();
+  }
 }
 
 function openBadgesPanel() {
@@ -1056,6 +1044,7 @@ function loadSessionHistory() {
   });
 }
 
+// Update getAISuggestions function API endpoint
 function getAISuggestions() {
   suggestionsContainer.innerHTML = `
     <div class="loading">
@@ -1064,35 +1053,20 @@ function getAISuggestions() {
     </div>
   `;
   
-  // Check if API key is the placeholder or empty
-  if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-    console.log('No API key provided, using fallback tips');
-    
-    // Use fallback tips instead
-    setTimeout(() => {
-      const randomIndices = [];
-      // Get 2-3 unique random indices
-      while (randomIndices.length < Math.min(3, FALLBACK_TIPS.length)) {
-        const randomIndex = Math.floor(Math.random() * FALLBACK_TIPS.length);
-        if (!randomIndices.includes(randomIndex)) {
-          randomIndices.push(randomIndex);
-        }
-      }
-      
-      let tipsHtml = '<ul style="padding-left: 20px;">';
-      randomIndices.forEach(index => {
-        tipsHtml += `<li>${FALLBACK_TIPS[index]}</li>`;
-      });
-      tipsHtml += '</ul>';
-      
-      suggestionsContainer.innerHTML = `<div class="animate__animated animate__fadeIn">${tipsHtml}</div>`;
-    }, 1000);
-    
-    return;
-  }
+  // These are productivity tips that will be used if the API call fails
+  const fallbackTips = [
+    "Focus on one task at a time to maintain deep concentration.",
+    "Keep a clear workspace to minimize distractions.",
+    "Set specific goals for your Pomodoro session.",
+    "Write down distracting thoughts to revisit later.",
+    "Stay hydrated - drink water during your breaks.",
+    "Proper posture improves focus and prevents fatigue.",
+    "Use your breaks to move around and stretch.",
+    "Consider the 2-minute rule: If it takes less than 2 minutes, do it now."
+  ];
   
   // Call the Google AI API to get personalized productivity suggestions
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+  fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1126,10 +1100,10 @@ function getAISuggestions() {
     console.error('Error fetching AI suggestions:', error);
     
     // Use fallback tips instead
-    const randomIndex = Math.floor(Math.random() * FALLBACK_TIPS.length);
+    const randomIndex = Math.floor(Math.random() * fallbackTips.length);
     suggestionsContainer.innerHTML = `
       <div class="animate__animated animate__fadeIn">
-        <p>${FALLBACK_TIPS[randomIndex]}</p>
+        <p>${fallbackTips[randomIndex]}</p>
       </div>
     `;
   });
@@ -2537,48 +2511,26 @@ function renderProductivityByTimeChart() {
 function generateAIInsights() {
   aiInsightsElement.innerHTML = '';
   
-  // Check if we have enough data for meaningful insights
-  if (userWorkPatterns.completions.length < 3) {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'empty-state';
-    emptyState.innerHTML = `
-      <i class="bi bi-lightbulb"></i>
-      <div class="empty-state-title">Not enough data yet</div>
-      <div class="empty-state-description">Complete more focus sessions to unlock personalized AI insights.</div>
-    `;
-    aiInsightsElement.appendChild(emptyState);
-    return;
-  }
-  
-  // Show loading state
+  // Show the loading state
   aiInsightsElement.innerHTML = `
-    <div class="loading">
+    <div class="loading-insights">
       <div class="dot-flashing"></div>
-      <span>Generating AI insights</span>
+      <span>Analyzing your productivity data</span>
     </div>
   `;
   
-  // Check if API key is the placeholder or empty - use rule-based insights instead
-  if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-    console.log('No API key provided, using rule-based insights');
-    setTimeout(() => {
-      renderRuleBasedInsights();
-    }, 1500); // Add delay to simulate processing
-    return;
-  }
+  // Analyze the user's data to determine patterns
+  let weeklyData = loadWeeklyData();
   
-  // Prepare data for the AI
+  // Calculate user productivity metrics from their data
   const userData = {
-    mostProductiveDay: userWorkPatterns.mostProductiveDay !== null ? getDayName(userWorkPatterns.mostProductiveDay) : "unknown",
-    mostProductiveTime: userWorkPatterns.mostProductiveHour !== null ? getTimeOfDay(userWorkPatterns.mostProductiveHour) : "unknown",
-    completionRate: Math.round(userWorkPatterns.completionRate || 0),
-    averageDuration: Math.round(
-      userWorkPatterns.completions.reduce((sum, c) => sum + c.duration, 0) / 
-      (userWorkPatterns.completions.length || 1)
-    ),
-    totalSessions: userWorkPatterns.completions.length,
-    interruptions: userWorkPatterns.interruptions.length,
-    streak: parseInt(currentStreakElement.textContent || "0"),
+    mostProductiveDay: calculateMostProductiveDay(weeklyData),
+    mostProductiveTime: calculateMostProductiveTime(weeklyData),
+    completionRate: calculateCompletionRate(weeklyData),
+    averageDuration: calculateAverageFocusDuration(weeklyData),
+    totalSessions: calculateTotalSessions(weeklyData),
+    interruptions: calculateInterruptions(weeklyData),
+    streak: calculateCurrentStreak(weeklyData),
     daysActive: Object.keys(weeklyData.dailyActivity || {}).length
   };
   
@@ -2609,7 +2561,7 @@ function generateAIInsights() {
   `;
   
   // Call the Google AI API to get personalized insights
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+  fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -2913,37 +2865,37 @@ function prioritizeTasks() {
 async function analyzeTasks(tasks) {
   return new Promise((resolve, reject) => {
     // Show loading state while API is processing
-    const loadingMessage = 'Analyzing tasks and setting priorities...';
     
-    // Check if API key is the placeholder or empty - use heuristics instead
-    if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-      console.log('No API key provided, using heuristic prioritization');
-      setTimeout(() => {
-        resolve(prioritizeWithHeuristics(tasks));
-      }, 1500); // Add delay to simulate processing
-      return;
-    }
+    // Format tasks for the prompt
+    const taskDescriptions = tasks.map(task => task.text);
     
-    // Prepare a prompt for Gemini
+    // Build a prompt for the AI to analyze tasks
     const prompt = `
-    I need help prioritizing these tasks. For each task, classify it as HIGH, MEDIUM, or LOW priority based on urgency and complexity.
-    Also provide a brief explanation for each priority assignment.
-    Return the results in this JSON format:
-    [
-      {
-        "task": "task text",
-        "priority": "HIGH", // or MEDIUM or LOW
-        "explanation": "brief explanation"
-      },
-      ...
-    ]
-    
-    Tasks:
-    ${tasks.join("\n")}
+      As a productivity assistant, prioritize the following tasks based on urgency and complexity.
+      Analyze each task and determine if it's HIGH, MEDIUM, or LOW priority.
+      
+      Tasks to prioritize:
+      ${taskDescriptions.map((task, index) => `${index + 1}. ${task}`).join('\n')}
+      
+      For each task, consider:
+      - Urgency: Does it contain words like "urgent", "ASAP", "deadline", "today", "tomorrow", "soon" (High urgency)?
+      - Complexity: Does it involve words like "analyze", "create", "develop", "research", "design" (High complexity)?
+      
+      Return your analysis as a JSON array with this format:
+      [
+        {
+          "task": "The exact task text",
+          "priority": "HIGH" or "MEDIUM" or "LOW",
+          "explanation": "Brief explanation about why this priority was assigned"
+        },
+        ...
+      ]
+      
+      Sort the results by priority (HIGH first, then MEDIUM, then LOW).
     `;
     
     // Call the Google AI API to prioritize tasks
-    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+    fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -3022,8 +2974,8 @@ async function analyzeTasks(tasks) {
       }
     })
     .catch(error => {
-      console.error('Error with AI prioritization:', error);
-      // Fall back to heuristic method
+      console.error('Error calling AI for task prioritization:', error);
+      // Fall back to heuristic method if API call fails
       resolve(prioritizeWithHeuristics(tasks));
     });
   });
@@ -3366,346 +3318,6 @@ document.addEventListener('DOMContentLoaded', () => {
   document.head.appendChild(style);
 });
 
-// Gamification constants
-const BADGES = {
-  FIRST_POMODORO: {
-    id: 'first_pomodoro',
-    name: 'First Focus',
-    icon: 'bi-lightning',
-    description: 'Completed your first Pomodoro session',
-    color: '#4CAF50'
-  },
-  STREAK_3: {
-    id: 'streak_3',
-    name: 'Focus Streak',
-    icon: 'bi-fire',
-    description: 'Completed 3 Pomodoro sessions in a row',
-    color: '#FF9800'
-  },
-  FIVE_CYCLES: {
-    id: 'five_cycles',
-    name: 'Focus Master',
-    icon: 'bi-trophy',
-    description: 'Completed 5 Pomodoro cycles',
-    color: '#FF5252' 
-  },
-  EARLY_BIRD: {
-    id: 'early_bird',
-    name: 'Early Bird',
-    icon: 'bi-sunrise',
-    description: 'Completed a Pomodoro before 9 AM',
-    color: '#2196F3'
-  },
-  NIGHT_OWL: {
-    id: 'night_owl',
-    name: 'Night Owl',
-    icon: 'bi-moon-stars',
-    description: 'Completed a Pomodoro after 10 PM',
-    color: '#673AB7'
-  },
-  WEEKEND_WARRIOR: {
-    id: 'weekend_warrior',
-    name: 'Weekend Warrior',
-    icon: 'bi-calendar-check',
-    description: 'Completed a Pomodoro on the weekend',
-    color: '#009688'
-  },
-  COMPLETED_TODO: {
-    id: 'completed_todo',
-    name: 'Task Master',
-    icon: 'bi-check2-all',
-    description: 'Completed 3 tasks during your Pomodoro sessions',
-    color: '#3F51B5'
-  }
-};
-
-const REWARDS = [
-  {
-    name: 'Coffee Break',
-    description: 'Take a 10-minute coffee break, you deserve it!',
-    icon: 'bi-cup-hot'
-  },
-  {
-    name: 'Stretch Session',
-    description: 'Do a quick 5-minute stretch to refresh your body and mind.',
-    icon: 'bi-person-arms-up'
-  },
-  {
-    name: 'Quick Walk',
-    description: 'Take a short 5-minute walk to get your blood flowing.',
-    icon: 'bi-person-walking'
-  },
-  {
-    name: 'Deep Breathing',
-    description: 'Do 10 deep breaths to improve focus and reduce stress.',
-    icon: 'bi-wind'
-  },
-  {
-    name: 'Music Break',
-    description: 'Listen to your favorite song as a quick reward.',
-    icon: 'bi-music-note-beamed'
-  },
-  {
-    name: 'Desk Tidy',
-    description: 'Take 2 minutes to tidy your desk for a fresh mindset.',
-    icon: 'bi-pencil-square'
-  },
-  {
-    name: 'Phone Break',
-    description: 'Allow yourself 3 minutes to check your phone.',
-    icon: 'bi-phone'
-  },
-  {
-    name: 'Healthy Snack',
-    description: 'Grab a healthy snack to refuel your brain.',
-    icon: 'bi-apple'
-  }
-];
-
-// Track consecutive Pomodoro completions
-let consecutivePomodoros = 0;
-let totalCompletedToday = 0;
-let completedTasks = 0;
-let earnedBadges = [];
-
-function checkForBadges() {
-  let newBadges = [];
-  
-  // First Pomodoro Badge
-  if (completedPomodoros === 1) {
-    newBadges.push(BADGES.FIRST_POMODORO);
-  }
-  
-  // Streak Badge
-  if (consecutivePomodoros === 3) {
-    newBadges.push(BADGES.STREAK_3);
-  }
-  
-  // Five Cycles Badge
-  if (completedPomodoros % 5 === 0) {
-    newBadges.push(BADGES.FIVE_CYCLES);
-  }
-  
-  // Time-based badges
-  const currentHour = new Date().getHours();
-  const currentDay = new Date().getDay();
-  
-  // Early Bird Badge
-  if (currentHour < 9) {
-    const hasEarlyBirdBadge = earnedBadges.some(badge => badge.id === BADGES.EARLY_BIRD.id);
-    if (!hasEarlyBirdBadge) {
-      newBadges.push(BADGES.EARLY_BIRD);
-    }
-  }
-  
-  // Night Owl Badge
-  if (currentHour >= 22) {
-    const hasNightOwlBadge = earnedBadges.some(badge => badge.id === BADGES.NIGHT_OWL.id);
-    if (!hasNightOwlBadge) {
-      newBadges.push(BADGES.NIGHT_OWL);
-    }
-  }
-  
-  // Weekend Warrior Badge
-  if (currentDay === 0 || currentDay === 6) { // 0 = Sunday, 6 = Saturday
-    const hasWeekendBadge = earnedBadges.some(badge => badge.id === BADGES.WEEKEND_WARRIOR.id);
-    if (!hasWeekendBadge) {
-      newBadges.push(BADGES.WEEKEND_WARRIOR);
-    }
-  }
-  
-  // Check for completed tasks badge
-  chrome.storage.local.get(['goals'], (result) => {
-    const goals = result.goals || [];
-    const completedGoals = goals.filter(goal => goal.completed);
-    
-    if (completedGoals.length >= 3) {
-      const hasTaskMasterBadge = earnedBadges.some(badge => badge.id === BADGES.COMPLETED_TODO.id);
-      if (!hasTaskMasterBadge) {
-        newBadges.push(BADGES.COMPLETED_TODO);
-      }
-    }
-    
-    // Save newly earned badges
-    if (newBadges.length > 0) {
-      earnedBadges = [...earnedBadges, ...newBadges];
-      saveBadges();
-      
-      // Show the badge notification
-      showBadgeNotification(newBadges);
-    }
-  });
-}
-
-function saveBadges() {
-  chrome.storage.local.set({ earnedBadges: earnedBadges });
-}
-
-function loadBadges() {
-  chrome.storage.local.get(['earnedBadges'], (result) => {
-    if (result.earnedBadges) {
-      earnedBadges = result.earnedBadges;
-    }
-  });
-}
-
-function showBadgeNotification(badges) {
-  if (badges.length === 0) return;
-  
-  // Only show the first badge if multiple are earned
-  const badge = badges[0];
-  
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.className = 'badge-notification animate__animated animate__fadeInUp';
-  notification.style.backgroundColor = badge.color;
-  
-  notification.innerHTML = `
-    <div class="badge-icon">
-      <i class="bi ${badge.icon}"></i>
-    </div>
-    <div class="badge-content">
-      <div class="badge-title">New Badge: ${badge.name}</div>
-      <div class="badge-description">${badge.description}</div>
-    </div>
-    <button class="badge-close">×</button>
-  `;
-  
-  // Add to body
-  document.body.appendChild(notification);
-  
-  // Close button logic
-  const closeButton = notification.querySelector('.badge-close');
-  closeButton.addEventListener('click', () => {
-    notification.classList.remove('animate__fadeInUp');
-    notification.classList.add('animate__fadeOutDown');
-    setTimeout(() => {
-      notification.remove();
-    }, 500);
-  });
-  
-  // Auto close after 5 seconds
-  setTimeout(() => {
-    if (document.body.contains(notification)) {
-      notification.classList.remove('animate__fadeInUp');
-      notification.classList.add('animate__fadeOutDown');
-      setTimeout(() => {
-        notification.remove();
-      }, 500);
-    }
-  }, 5000);
-  
-  // Play achievement sound
-  if (PLAY_SOUNDS) {
-    const achievementSound = new Audio(chrome.runtime.getURL('sounds/achievement.mp3'));
-    achievementSound.play().catch(err => console.log('Error playing sound:', err));
-  }
-}
-
-function suggestReward() {
-  // Select a random reward
-  const reward = REWARDS[Math.floor(Math.random() * REWARDS.length)];
-  
-  // Create reward notification
-  const notification = document.createElement('div');
-  notification.className = 'reward-notification animate__animated animate__bounceIn';
-  
-  notification.innerHTML = `
-    <div class="reward-header">
-      <div class="reward-title">5 Cycles Completed!</div>
-      <button class="reward-close">×</button>
-    </div>
-    <div class="reward-content">
-      <div class="reward-icon">
-        <i class="bi ${reward.icon}"></i>
-      </div>
-      <div class="reward-details">
-        <div class="reward-name">${reward.name}</div>
-        <div class="reward-description">${reward.description}</div>
-      </div>
-    </div>
-    <button class="reward-button">Take Reward</button>
-  `;
-  
-  // Add to body
-  document.body.appendChild(notification);
-  
-  // Close button logic
-  const closeButton = notification.querySelector('.reward-close');
-  closeButton.addEventListener('click', () => {
-    notification.classList.remove('animate__bounceIn');
-    notification.classList.add('animate__bounceOut');
-    setTimeout(() => {
-      notification.remove();
-    }, 500);
-  });
-  
-  // Take reward button logic
-  const takeButton = notification.querySelector('.reward-button');
-  takeButton.addEventListener('click', () => {
-    notification.classList.remove('animate__bounceIn');
-    notification.classList.add('animate__bounceOut');
-    setTimeout(() => {
-      notification.remove();
-      
-      // Show confirmation
-      showConfirmation(`Enjoy your ${reward.name}!`);
-    }, 500);
-  });
-  
-  // Play reward sound
-  if (PLAY_SOUNDS) {
-    const rewardSound = new Audio(chrome.runtime.getURL('sounds/reward.mp3'));
-    rewardSound.play().catch(err => console.log('Error playing sound:', err));
-  }
-}
-
-function showConfirmation(message) {
-  const confirmation = document.createElement('div');
-  confirmation.className = 'confirmation-toast animate__animated animate__fadeIn';
-  confirmation.textContent = message;
-  
-  document.body.appendChild(confirmation);
-  
-  // Auto hide after 3 seconds
-  setTimeout(() => {
-    confirmation.classList.remove('animate__fadeIn');
-    confirmation.classList.add('animate__fadeOut');
-    setTimeout(() => {
-      confirmation.remove();
-    }, 500);
-  }, 3000);
-}
-
-// Load badges, consecutive pomodoros and other gamification metrics when popup opens
-document.addEventListener('DOMContentLoaded', () => {
-  loadSettings();
-  loadSessionHistory();
-  loadGoals();
-  loadBadges();
-  
-  // Load consecutive Pomodoros count
-  chrome.storage.local.get(['consecutivePomodoros', 'totalCompletedToday', 'lastPomodoroDayCount'], (result) => {
-    // Check if it's a new day
-    const today = new Date().toDateString();
-    if (result.lastPomodoroDayCount !== today) {
-      // Reset daily counters
-      totalCompletedToday = 0;
-      chrome.storage.local.set({ 
-        lastPomodoroDayCount: today,
-        totalCompletedToday: 0
-      });
-    } else {
-      // Keep the existing counts
-      consecutivePomodoros = result.consecutivePomodoros || 0;
-      totalCompletedToday = result.totalCompletedToday || 0;
-    }
-  });
-  
-  // Load gamification data
-  loadGamificationData();
-});
-
 // Gamification elements
 const badgesBtn = document.getElementById('badges-btn');
 const badgesPanel = document.getElementById('badges-panel');
@@ -3714,211 +3326,38 @@ const badgesGrid = document.getElementById('badges-grid');
 const badgeNotificationTemplate = document.getElementById('badge-notification-template');
 const rewardNotificationTemplate = document.getElementById('reward-notification-template');
 
-// Badge definitions
-const BADGES = [
-  {
-    id: 'first_pomodoro',
-    name: 'First Focus',
-    description: 'Completed your first Pomodoro',
-    icon: 'bi-play-circle',
-    color: '#4CAF50',
-    requirement: 1
-  },
-  {
-    id: 'five_pomodoros',
-    name: 'Focus Streak',
-    description: 'Completed 5 Pomodoros',
-    icon: 'bi-lightning',
-    color: '#FF9800',
-    requirement: 5
-  },
-  {
-    id: 'ten_pomodoros',
-    name: 'Productivity Master',
-    description: 'Completed 10 Pomodoros',
-    icon: 'bi-trophy',
-    color: '#9C27B0',
-    requirement: 10
-  },
-  {
-    id: 'twenty_five_pomodoros',
-    name: 'Time Wizard',
-    description: 'Completed 25 Pomodoros',
-    icon: 'bi-clock-history',
-    color: '#2196F3',
-    requirement: 25
-  }
-];
-
-// Reward activities
-const REWARDS = [
-  {
-    name: 'Take a walk outside',
-    description: 'Step outside for 5 minutes of fresh air and movement'
-  },
-  {
-    name: 'Stretch break',
-    description: 'Do some quick stretches to refresh your body'
-  },
-  {
-    name: 'Hydration moment',
-    description: 'Enjoy a glass of water or your favorite tea'
-  },
-  {
-    name: 'Deep breathing',
-    description: 'Take 10 deep breaths to clear your mind'
-  },
-  {
-    name: 'Quick meditation',
-    description: 'Close your eyes for a 2-minute mindfulness moment'
-  },
-  {
-    name: 'Listen to a song',
-    description: 'Enjoy one of your favorite songs as a quick mental break'
-  },
-  {
-    name: 'Doodle time',
-    description: 'Spend 2 minutes doodling or drawing something simple'
-  },
-  {
-    name: 'Posture check',
-    description: 'Reset your posture and do a quick shoulder roll'
-  }
-];
-
-// Variables to track user progress
-let completedPomodoros = 0;
-let earnedBadges = [];
-
-// Load gamification data
+// Use gamification.js functions
 function loadGamificationData() {
-  chrome.storage.local.get(['completedPomodoros', 'earnedBadges'], function(result) {
+  chrome.storage.local.get(['completedPomodoros'], function(result) {
     if (result.completedPomodoros !== undefined) {
-      // No need to reassign completedPomodoros as it already exists
-      // Just use the existing variable
+      completedPomodoros = result.completedPomodoros;
     }
-    if (result.earnedBadges) {
-      earnedBadges = result.earnedBadges;
+    // earnedBadges already loaded by gamification.js
+    
+    // Call updateBadgesDisplay after loading data
+    if (window.gamification && window.gamification.updateBadgesDisplay) {
+      window.gamification.updateBadgesDisplay();
     }
-    updateBadgesDisplay();
   });
 }
 
-// Save gamification data
+// Delegate to gamification.js
 function saveGamificationData() {
   chrome.storage.local.set({
-    completedPomodoros: completedPomodoros,
-    earnedBadges: earnedBadges
+    completedPomodoros: completedPomodoros
   });
+  // earnedBadges already saved by gamification.js
 }
 
-// Initialize badges display
+// Use updateBadgesDisplay from gamification.js
 function updateBadgesDisplay() {
-  badgesGrid.innerHTML = '';
-  
-  BADGES.forEach(badge => {
-    const isEarned = earnedBadges.includes(badge.id);
-    const badgeElement = document.createElement('div');
-    badgeElement.className = `badge-item ${isEarned ? 'earned' : 'locked'}`;
-    
-    badgeElement.innerHTML = `
-      <div class="badge-icon" style="background-color: ${isEarned ? badge.color + '30' : '#e0e0e0'}">
-        <i class="bi ${badge.icon}" style="color: ${isEarned ? badge.color : '#999'}"></i>
-      </div>
-      <div class="badge-info">
-        <div class="badge-name">${badge.name}</div>
-        <div class="badge-description">${badge.description}</div>
-      </div>
-    `;
-    
-    badgesGrid.appendChild(badgeElement);
-  });
+  window.gamification.updateBadgesDisplay && window.gamification.updateBadgesDisplay();
 }
 
-// Check for badge achievements when a Pomodoro is completed
+// Use checkBadgeAchievements from gamification.js
 function checkBadgeAchievements() {
   completedPomodoros++;
-  
-  // Check if any new badges have been earned
-  BADGES.forEach(badge => {
-    if (completedPomodoros >= badge.requirement && !earnedBadges.includes(badge.id)) {
-      earnBadge(badge);
-    }
-  });
-  
-  // Check if we should offer a reward (every 5 Pomodoros)
-  if (completedPomodoros % 5 === 0) {
-    offerReward();
-  }
-  
-  saveGamificationData();
-}
-
-// Display badge earned notification
-function earnBadge(badge) {
-  earnedBadges.push(badge.id);
-  
-  const notificationClone = badgeNotificationTemplate.content.cloneNode(true);
-  const notification = notificationClone.querySelector('.badge-notification');
-  
-  // Set badge details
-  notification.querySelector('.badge-icon i').className = `bi ${badge.icon}`;
-  notification.querySelector('.badge-icon').style.backgroundColor = badge.color + '30';
-  notification.querySelector('.badge-icon i').style.color = badge.color;
-  notification.querySelector('.badge-name').textContent = badge.name;
-  
-  // Add close functionality
-  notification.querySelector('.badge-close').addEventListener('click', () => {
-    document.body.removeChild(notification);
-  });
-  
-  // Auto-remove after 5 seconds
-  document.body.appendChild(notification);
-  setTimeout(() => {
-    if (document.body.contains(notification)) {
-      document.body.removeChild(notification);
-    }
-  }, 5000);
-  
-  updateBadgesDisplay();
-}
-
-// Offer a reward after milestone Pomodoros
-function offerReward() {
-  // Select a random reward
-  const reward = REWARDS[Math.floor(Math.random() * REWARDS.length)];
-  
-  const notificationClone = rewardNotificationTemplate.content.cloneNode(true);
-  const notification = notificationClone.querySelector('.reward-notification');
-  
-  // Set reward details
-  notification.querySelector('.reward-name').textContent = reward.name;
-  notification.querySelector('.reward-description').textContent = reward.description;
-  
-  // Add close functionality
-  notification.querySelector('.reward-close').addEventListener('click', () => {
-    document.body.removeChild(notification);
-  });
-  
-  // Add claim functionality
-  notification.querySelector('.reward-button').addEventListener('click', () => {
-    document.body.removeChild(notification);
-    showConfirmation('Enjoy your reward!');
-  });
-  
-  document.body.appendChild(notification);
-}
-
-// Show a confirmation toast message
-function showConfirmation(message) {
-  const toast = document.createElement('div');
-  toast.className = 'confirmation-toast';
-  toast.textContent = message;
-  
-  document.body.appendChild(toast);
-  setTimeout(() => {
-    document.body.removeChild(toast);
-  }, 3000);
+  window.gamification.checkBadgeAchievements && window.gamification.checkBadgeAchievements(completedPomodoros);
 }
 
 // Event listeners for badge panel
@@ -3930,20 +3369,76 @@ badgesClose.addEventListener('click', () => {
   badgesPanel.classList.remove('open');
 });
 
-// Update the timer completion function to include badge checks
-function onTimerComplete() {
-  // Existing code for timer completion
-  if (timerType === TIMER_TYPE.POMODORO) {
-    // Existing code
-    checkBadgeAchievements();
+// Add a test audio function that can be called from the console
+function testAudioPlayback() {
+  console.log('Testing audio playback...');
+  const statusEl = document.getElementById('audio-test-status');
+  
+  if (statusEl) {
+    statusEl.textContent = 'Testing popup audio...';
+    statusEl.style.color = '#FFA500'; // Orange for testing
   }
   
-  // Rest of existing onTimerComplete logic
-  // ... existing code ...
+  // Test audio in popup context first
+  try {
+    const testStart = new Audio(chrome.runtime.getURL('sounds/start.mp3'));
+    console.log('Start sound created successfully in popup');
+    
+    testStart.play()
+      .then(() => {
+        console.log('✓ Start sound played successfully in popup');
+        if (statusEl) statusEl.textContent = 'Popup start sound: ✓';
+        
+        // Now test background audio
+        if (statusEl) statusEl.textContent = 'Testing background audio...';
+        
+        // Send message to background script to test audio there
+        chrome.runtime.sendMessage(
+          { action: 'testBackgroundAudio' },
+          (response) => {
+            if (chrome.runtime.lastError) {
+              console.error('Error testing background audio:', chrome.runtime.lastError);
+              if (statusEl) {
+                statusEl.textContent = 'Error communicating with background';
+                statusEl.style.color = '#F44336'; // Red for error
+              }
+              return;
+            }
+            
+            console.log('Background audio test response:', response);
+            
+            if (response && response.success) {
+              if (statusEl) {
+                statusEl.textContent = 'Popup: ✓ | Background: Using mocks';
+                statusEl.style.color = '#4CAF50'; // Green for success
+              }
+            } else {
+              if (statusEl) {
+                statusEl.textContent = 'Popup: ✓ | Background: ✗';
+                statusEl.style.color = '#FFA500'; // Orange for partial success
+              }
+            }
+          }
+        );
+      })
+      .catch(err => {
+        console.error('✗ Error playing start sound in popup:', err);
+        if (statusEl) {
+          statusEl.textContent = 'Error playing sound in popup';
+          statusEl.style.color = '#F44336'; // Red for error
+        }
+      });
+    
+    return 'Audio test started - check console for results';
+  } catch (e) {
+    console.error('Error during popup audio test:', e);
+    if (statusEl) {
+      statusEl.textContent = 'Audio test failed';
+      statusEl.style.color = '#F44336'; // Red for error
+    }
+    return 'Audio test failed - see console for details';
+  }
 }
 
-// Load gamification data on startup
-document.addEventListener('DOMContentLoaded', function() {
-  // ... existing DOMContentLoaded code ...
-  loadGamificationData();
-});
+// Make it available globally for testing
+window.testAudioPlayback = testAudioPlayback;

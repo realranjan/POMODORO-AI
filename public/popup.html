@@ -1983,6 +1983,35 @@
     body.dark-mode .badge-item {
       background-color: #252525;
     }
+
+    /* Add a test sound button to the settings panel */
+    .settings-section {
+      margin-bottom: 1.5rem;
+    }
+
+    .settings-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 0.5rem;
+    }
+
+    .settings-row button {
+      background: none;
+      border: none;
+      color: var(--primary);
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .settings-row button:hover {
+      text-decoration: underline;
+    }
+
+    .test-status {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
 <body>
@@ -2212,6 +2241,15 @@
         <div class="help-text">Get personalized recommendations for break activities based on your work patterns</div>
       </div>
     </div>
+
+    <!-- Add a test sound button to the settings panel -->
+    <div class="settings-section">
+      <h3>Audio Tests</h3>
+      <div class="settings-row">
+        <button id="test-audio-btn" class="btn btn-primary">Test All Sounds</button>
+        <div class="test-status" id="audio-test-status"></div>
+      </div>
+    </div>
   </div>
 
   <!-- Insights Toggle -->
@@ -2373,6 +2411,7 @@
     </div>
   </template>
 
+  <script src="audio_polyfill.js"></script>
   <script src="gamification.js"></script>
   <script src="popup.js"></script>
 </body>

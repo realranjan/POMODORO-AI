@@ -1,7 +1,32 @@
-// Sound files
-const startSound = new Audio(chrome.runtime.getURL('sounds/start.mp3'));
-const breakSound = new Audio(chrome.runtime.getURL('sounds/break.mp3'));
-const completeSound = new Audio(chrome.runtime.getURL('sounds/complete.mp3'));
+// Don't use Audio in service worker context
+// Define an audio mock for safe usage in service workers
+function createAudioMock(url) {
+  return {
+    url,
+    play: function() {
+      console.log('Mock audio playback for:', url);
+      return Promise.resolve();
+    }
+  };
+}
+
+// Create sound objects using mocks
+const startSound = createAudioMock(chrome.runtime.getURL('sounds/start.mp3'));
+const breakSound = createAudioMock(chrome.runtime.getURL('sounds/break.mp3'));
+const completeSound = createAudioMock(chrome.runtime.getURL('sounds/complete.mp3'));
+
+// Simple functions to return the sound objects
+function getStartSound() {
+  return startSound;
+}
+
+function getBreakSound() {
+  return breakSound;
+}
+
+function getCompleteSound() {
+  return completeSound;
+}
 
 // Setup alarm listener to handle timer expiration
 chrome.alarms.onAlarm.addListener((alarm) => {
@@ -20,7 +45,7 @@ chrome.alarms.onAlarm.addListener((alarm) => {
           const nextMode = newPomodorosCompleted % 4 === 0 ? 'longBreak' : 'shortBreak';
           const breakTime = nextMode === 'longBreak' ? 15 * 60 * 1000 : 5 * 60 * 1000;
           
-          // Play break sound
+          // Play break sound - safely handle errors
           breakSound.play().catch(err => console.log('Error playing sound:', err));
           
           // Create notification
@@ -108,5 +133,38 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       sendResponse({ success: wasCleared });
     });
     return true;
+  } else if (message.action === 'testBackgroundAudio') {
+    // Test if audio is available in background context
+    console.log('Testing background audio availability');
+    
+    try {
+      // Try to play a sound
+      startSound.play()
+        .then(() => {
+          console.log('Background sound mock played successfully');
+          sendResponse({ 
+            success: true, 
+            audioAvailable: false,  // Always false for mocks
+            message: 'Audio mocks are being used in service worker' 
+          });
+        })
+        .catch(err => {
+          console.error('Error playing background sound:', err);
+          sendResponse({ 
+            success: false, 
+            audioAvailable: false, 
+            error: err.message 
+          });
+        });
+    } catch (e) {
+      console.error('Exception in background audio test:', e);
+      sendResponse({ 
+        success: false, 
+        audioAvailable: false, 
+        error: e.message 
+      });
+    }
+    
+    return true; // Keep the messaging channel open for async response
   }
 }); 

@@ -227,7 +227,15 @@ function initializeBadgesPanel() {
 
 // Export functions to be used in popup.js
 window.gamification = {
+  BADGES,
+  REWARDS,
+  earnedBadges,
   checkBadgeAchievements,
   offerReward,
-  initializeBadgesPanel
+  initializeBadgesPanel,
+  updateBadgesDisplay,
+  loadGamificationData,
+  saveGamificationData,
+  earnBadge,
+  showConfirmation
 };

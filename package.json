@@ -3,11 +3,16 @@
   "version": "1.0.0",
   "description": "AI-powered Pomodoro timer Chrome extension",
   "scripts": {
-    "build": "mkdir -p dist && cp -r public/* dist/"
+    "build:unix": "mkdir -p dist && cp -r public/* dist/",
+    "build:win": "if not exist dist mkdir dist && xcopy /E /I /Y public dist",
+    "build": "npm run build:win",
+    "clean": "rimraf dist",
+    "package": "web-ext build --source-dir=public --artifacts-dir=dist"
   },
   "author": "",
   "license": "MIT",
   "devDependencies": {
-    "web-ext": "^7.10.0"
+    "rimraf": "^5.0.5",
+    "web-ext": "^8.5.0"
   }
-} 
+}
