@@ -1,93 +1,63 @@
 # Pomodoro AI Chrome Extension
 
-An AI-powered Pomodoro timer Chrome extension that helps you maximize productivity using the Pomodoro Technique, enhanced with artificial intelligence.
+A productivity-focused Chrome extension that combines the Pomodoro technique with AI-powered productivity suggestions using Google's Gemini API.
 
 ## Features
 
-- **AI-Powered Productivity**: Leverages Google's Gemini API for intelligent task prioritization and personalized productivity insights
-- **Pomodoro Timer**: Classic 25/5/15 minute cycle with customizable durations
-- **Task Management**: Add, complete, and organize your tasks
-- **Task Prioritization**: AI analyzes and prioritizes your tasks based on urgency and complexity
-- **Progress Tracking**: Visualize your productivity and focus time with charts and statistics
-- **Gamification**: Earn badges and rewards as you complete Pomodoro sessions to stay motivated
-- **Personalized Insights**: Get AI-generated insights based on your productivity patterns
-- **Break Recommendations**: Smart suggestions for how to spend your break time
-- **Adaptive Timing**: Optional feature that learns your optimal work periods
-- **Dark Mode**: Easy on the eyes during evening work sessions
+- Standard Pomodoro timer (25-minute work sessions, 5-minute short breaks, 15-minute long breaks)
+- AI-powered productivity suggestions for each work session
+- Session history tracking
+- Browser notifications when sessions end
+- Customizable themes
 
 ## Installation
 
-### From Chrome Web Store (Coming Soon)
-1. Visit the Chrome Web Store (link to be added)
-2. Click "Add to Chrome"
-3. Follow the prompts to complete installation
+### Developer Mode (Loading Unpacked Extension)
 
-### Manual Installation (Developer Mode)
-1. Clone this repository:
-```
-git clone https://github.com/yourusername/pomodoro-ai.git
-```
-2. Open Chrome and navigate to `chrome://extensions/`
-3. Enable "Developer mode" in the top-right corner
-4. Click "Load unpacked"
-5. Select the `public` folder from this repository
-6. The extension should now be installed and visible in your toolbar
+1. Clone or download this repository to your local machine
+2. Open Chrome and go to `chrome://extensions/`
+3. Enable "Developer mode" using the toggle in the top-right corner
+4. Click "Load unpacked" and select the `public` folder from this repository
+5. The extension should now appear in your Chrome toolbar
+
+### From Chrome Web Store (Coming Soon)
+
+Once published, you'll be able to install directly from the Chrome Web Store.
 
 ## Usage
 
-1. Click on the Pomodoro AI icon in your Chrome toolbar
-2. Add tasks you want to accomplish
-3. Start the Pomodoro timer
-4. Work on your tasks until the timer completes
-5. Take a short break
-6. After 4 Pomodoros, take a longer break
-7. View your progress and insights in the Progress panel
-8. Earn badges and rewards as you complete sessions
+1. Click on the Pomodoro AI icon in your Chrome toolbar to open the popup
+2. Click the "Start" button to begin a 25-minute Pomodoro session
+3. Work on your task until the timer completes
+4. A notification will appear when it's time for a break
+5. After the break, start your next Pomodoro session
+
+## AI Features
+
+The extension uses Google's Gemini API to provide personalized productivity suggestions for each Pomodoro session. These suggestions are designed to help you make the most of your 25-minute focused work periods.
+
+## Privacy
+
+Your data stays on your device. The only external communication is with the Google AI API to generate productivity suggestions, and no personal data is shared with this API.
 
 ## Development
 
-Requirements:
-- Node.js and npm
+### Setup
 
-Setup:
 ```
 npm install
 ```
 
-Build:
+### Build
+
 ```
 npm run build
 ```
 
-Create extension zip:
-```
-npm run zip
-```
+### Testing the Extension
 
-Clean build files:
-```
-npm run clean
-```
-
-## API Configuration
-
-The extension uses Google's Gemini API for AI features. 
-
-To use your own API key:
-1. Get an API key from [Google AI Studio](https://makersuite.google.com/)
-2. Open `public/popup.js` 
-3. Update the `API_KEY` constant with your key
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
+Follow the "Developer Mode" installation instructions above, but select the `dist` folder after building.
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Acknowledgments
-
-- The Pomodoro Technique was developed by Francesco Cirillo
-- Uses Google's Gemini API for artificial intelligence features
-- Icons from Bootstrap Icons collection 
+MIT 

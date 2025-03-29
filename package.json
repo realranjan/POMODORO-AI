@@ -1,28 +1,12 @@
 {
   "name": "pomodoro-ai-extension",
   "version": "1.0.0",
-  "description": "AI-powered Pomodoro timer Chrome extension with task prioritization, progress tracking, and gamification",
+  "description": "AI-powered Pomodoro timer Chrome extension",
   "scripts": {
-    "build": "if not exist dist mkdir dist && xcopy /E /I /Y public dist",
-    "zip": "powershell Compress-Archive -Path public/* -DestinationPath pomodoro-ai-extension.zip -Force",
-    "clean": "if exist dist rmdir /S /Q dist && if exist pomodoro-ai-extension.zip del pomodoro-ai-extension.zip",
-    "test": "echo No tests configured"
+    "build": "mkdir -p dist && cp -r public/* dist/"
   },
   "author": "",
   "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/yourusername/pomodoro-ai.git"
-  },
-  "keywords": [
-    "pomodoro",
-    "productivity",
-    "ai",
-    "chrome-extension",
-    "timer",
-    "focus",
-    "gamification"
-  ],
   "devDependencies": {
     "web-ext": "^7.10.0"
   }

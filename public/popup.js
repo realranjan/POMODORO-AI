@@ -1,21 +1,38 @@
-// Imports or global declarations
+// Google API key for AI functionality
+const API_KEY = 'AIzaSyAUVuas3PtGUedngTIgxIvJNiJ2T33b54g'; 
 
-// API key for Gemini
-const API_KEY = 'YOUR_GEMINI_API_KEY_HERE';
+// DOM Elements
+const minutesElement = document.getElementById('minutes');
+const secondsElement = document.getElementById('seconds');
+const startButton = document.getElementById('start-btn');
+const resetButton = document.getElementById('reset-btn');
+const statusText = document.getElementById('status-text');
+const suggestionsContainer = document.getElementById('suggestions-container');
+const historyList = document.getElementById('history-list');
+const container = document.querySelector('.app-container');
+const timerProgressCircle = document.querySelector('.timer-progress-circle');
+const settingsPanel = document.getElementById('settings-panel');
+const settingsButton = document.getElementById('settings-btn');
+const settingsCloseButton = document.getElementById('settings-close');
+const shortcutButtons = document.querySelectorAll('.shortcut-btn');
 
-// Fallback tips for when API key isn't available
-const FALLBACK_TIPS = [
-  "Break large tasks into smaller, manageable chunks.",
-  "Use the Two-Minute Rule: If it takes less than two minutes, do it now.",
-  "Focus on one task at a time - avoid multitasking.",
-  "Keep your workspace clean and organized.",
-  "Silence notifications and put your phone away.",
-  "Set a clear goal for each Pomodoro session.",
-  "Prioritize your most important task first.",
-  "Drink water to stay hydrated and maintain focus.",
-  "Take deep breaths if you feel distracted.",
-  "Write down distracting thoughts to revisit later."
-];
+// Sound test buttons
+const testStartSound = document.getElementById('test-start-sound');
+const testBreakSound = document.getElementById('test-break-sound');
+const testCompleteSound = document.getElementById('test-complete-sound');
+
+// Settings inputs
+const pomodoroInput = document.getElementById('pomodoro-duration');
+const shortBreakInput = document.getElementById('short-break-duration');
+const longBreakInput = document.getElementById('long-break-duration');
+const autoStartBreaksInput = document.getElementById('auto-start-breaks');
+const autoStartPomodorosInput = document.getElementById('auto-start-pomodoros');
+const showNotificationsInput = document.getElementById('show-notifications');
+const playSoundsInput = document.getElementById('play-sounds');
+const darkModeInput = document.getElementById('dark-mode');
+const aiSuggestionsInput = document.getElementById('ai-suggestions');
+const adaptiveTimingInput = document.getElementById('adaptive-timing');
+const breakRecommendationsInput = document.getElementById('break-recommendations');
 
 // Timer circle properties
 const TIMER_CIRCLE_RADIUS = 90;
@@ -482,26 +499,6 @@ document.addEventListener('DOMContentLoaded', () => {
   
   // Add event listener for badges button
   badgesButton.addEventListener('click', openBadgesPanel);
-  
-  // Add fullscreen button to header actions
-  const fullscreenButton = document.createElement('button');
-  fullscreenButton.id = 'fullscreen-btn';
-  fullscreenButton.className = 'icon-btn tooltip';
-  fullscreenButton.setAttribute('aria-label', 'Fullscreen');
-  fullscreenButton.innerHTML = `
-    <i class="bi bi-fullscreen"></i>
-    <span class="tooltip-text">Fullscreen</span>
-  `;
-  actionsDiv.prepend(fullscreenButton);
-  
-  // Add event listener for fullscreen button
-  fullscreenButton.addEventListener('click', toggleFullscreen);
-  
-  // Use existing badges button
-  const badgesBtn = document.getElementById('badges-btn');
-  if (badgesBtn) {
-    badgesBtn.addEventListener('click', openBadgesPanel);
-  }
 });
 
 // Save consecutive Pomodoros count on popup close
@@ -513,14 +510,10 @@ window.addEventListener('beforeunload', () => {
 });
 
 // Create badges panel
-function openBadgesPanel() {
-  // Check if it already exists and remove it to avoid duplicates
-  const existingPanel = document.getElementById('badges-panel');
-  if (existingPanel) {
-    existingPanel.parentNode.removeChild(existingPanel);
-  }
+function createBadgesPanel() {
+  // Check if it already exists
+  if (document.getElementById('badges-panel')) return;
   
-  // Create a new panel
   const badgesPanel = document.createElement('div');
   badgesPanel.id = 'badges-panel';
   badgesPanel.className = 'badges-panel';
@@ -546,9 +539,43 @@ function openBadgesPanel() {
   
   // Populate badges
   populateBadgesGrid();
+}
+
+function populateBadgesGrid() {
+  const badgesGrid = document.getElementById('badges-grid');
+  if (!badgesGrid) return;
   
-  // Show the panel immediately
-  badgesPanel.classList.add('open');
+  badgesGrid.innerHTML = '';
+  
+  // Create all available badges (earned and locked)
+  Object.values(BADGES).forEach(badge => {
+    const isEarned = earnedBadges.some(earnedBadge => earnedBadge.id === badge.id);
+    
+    const badgeElement = document.createElement('div');
+    badgeElement.className = `badge-item ${isEarned ? 'earned' : 'locked'}`;
+    
+    badgeElement.innerHTML = `
+      <div class="badge-icon" style="background-color: ${isEarned ? badge.color : '#cccccc'}">
+        <i class="bi ${badge.icon}"></i>
+      </div>
+      <div class="badge-info">
+        <div class="badge-name">${badge.name}</div>
+        <div class="badge-description">${badge.description}</div>
+      </div>
+    `;
+    
+    badgesGrid.appendChild(badgeElement);
+  });
+}
+
+function openBadgesPanel() {
+  createBadgesPanel();
+  
+  // Show the panel with animation
+  setTimeout(() => {
+    const badgesPanel = document.getElementById('badges-panel');
+    badgesPanel.classList.add('open');
+  }, 10);
 }
 
 function closeBadgesPanel() {
@@ -563,39 +590,6 @@ function closeBadgesPanel() {
       }
     }, 300);
   }
-}
-
-function populateBadgesGrid() {
-  const badgesGrid = document.getElementById('badges-grid');
-  if (!badgesGrid) return;
-  
-  badgesGrid.innerHTML = '';
-  
-  // Handle both BADGES formats (array or object)
-  let badgesToDisplay = Array.isArray(BADGES) ? BADGES : Object.values(BADGES);
-  
-  badgesToDisplay.forEach(badge => {
-    // Handle different earnedBadges formats (array of ids or array of objects)
-    const isEarned = Array.isArray(earnedBadges) && (
-      earnedBadges.includes(badge.id) || 
-      earnedBadges.some(eb => eb.id === badge.id || eb === badge.id)
-    );
-    
-    const badgeElement = document.createElement('div');
-    badgeElement.className = `badge-item ${isEarned ? 'earned' : 'locked'}`;
-    
-    badgeElement.innerHTML = `
-      <div class="badge-icon" style="background-color: ${isEarned ? badge.color + '30' : '#e0e0e0'}">
-        <i class="bi ${badge.icon}" style="color: ${isEarned ? badge.color : '#999'}"></i>
-      </div>
-      <div class="badge-info">
-        <div class="badge-name">${badge.name}</div>
-        <div class="badge-description">${badge.description}</div>
-      </div>
-    `;
-    
-    badgesGrid.appendChild(badgeElement);
-  });
 }
 
 // Functions
@@ -1048,6 +1042,7 @@ function loadSessionHistory() {
   });
 }
 
+// Update getAISuggestions function API endpoint
 function getAISuggestions() {
   suggestionsContainer.innerHTML = `
     <div class="loading">
@@ -1056,35 +1051,20 @@ function getAISuggestions() {
     </div>
   `;
   
-  // Check if API key is the placeholder or empty
-  if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-    console.log('No API key provided, using fallback tips');
-    
-    // Use fallback tips instead
-    setTimeout(() => {
-      const randomIndices = [];
-      // Get 3 unique random indices
-      while (randomIndices.length < Math.min(3, FALLBACK_TIPS.length)) {
-        const randomIndex = Math.floor(Math.random() * FALLBACK_TIPS.length);
-        if (!randomIndices.includes(randomIndex)) {
-          randomIndices.push(randomIndex);
-        }
-      }
-      
-      let tipsHtml = '<ul style="padding-left: 20px;">';
-      randomIndices.forEach(index => {
-        tipsHtml += `<li>${FALLBACK_TIPS[index]}</li>`;
-      });
-      tipsHtml += '</ul>';
-      
-      suggestionsContainer.innerHTML = tipsHtml;
-    }, 800);
-    
-    return;
-  }
+  // These are productivity tips that will be used if the API call fails
+  const fallbackTips = [
+    "Focus on one task at a time to maintain deep concentration.",
+    "Keep a clear workspace to minimize distractions.",
+    "Set specific goals for your Pomodoro session.",
+    "Write down distracting thoughts to revisit later.",
+    "Stay hydrated - drink water during your breaks.",
+    "Proper posture improves focus and prevents fatigue.",
+    "Use your breaks to move around and stretch.",
+    "Consider the 2-minute rule: If it takes less than 2 minutes, do it now."
+  ];
   
   // Call the Google AI API to get personalized productivity suggestions
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+  fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -1118,10 +1098,10 @@ function getAISuggestions() {
     console.error('Error fetching AI suggestions:', error);
     
     // Use fallback tips instead
-    const randomIndex = Math.floor(Math.random() * FALLBACK_TIPS.length);
+    const randomIndex = Math.floor(Math.random() * fallbackTips.length);
     suggestionsContainer.innerHTML = `
       <div class="animate__animated animate__fadeIn">
-        <p>${FALLBACK_TIPS[randomIndex]}</p>
+        <p>${fallbackTips[randomIndex]}</p>
       </div>
     `;
   });
@@ -2529,49 +2509,26 @@ function renderProductivityByTimeChart() {
 function generateAIInsights() {
   aiInsightsElement.innerHTML = '';
   
-  // Check if we have enough data for meaningful insights
-  if (userWorkPatterns.completions.length < 3) {
-    const emptyState = document.createElement('div');
-    emptyState.className = 'empty-state';
-    emptyState.innerHTML = `
-      <i class="bi bi-lightbulb"></i>
-      <div class="empty-state-title">Not enough data yet</div>
-      <div class="empty-state-description">Complete more focus sessions to unlock personalized AI insights.</div>
-    `;
-    aiInsightsElement.appendChild(emptyState);
-    return;
-  }
-  
-  // Show loading state
+  // Show the loading state
   aiInsightsElement.innerHTML = `
-    <div class="loading">
+    <div class="loading-insights">
       <div class="dot-flashing"></div>
-      <span>Generating AI insights</span>
+      <span>Analyzing your productivity data</span>
     </div>
   `;
   
-  // Check if API key is the placeholder or empty - use rule-based insights instead
-  if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-    console.log('No API key provided, using rule-based insights');
-    // Use a shorter timeout to seem more responsive
-    setTimeout(() => {
-      renderRuleBasedInsights();
-    }, 800);
-    return;
-  }
+  // Analyze the user's data to determine patterns
+  let weeklyData = loadWeeklyData();
   
-  // Prepare data for the AI
+  // Calculate user productivity metrics from their data
   const userData = {
-    mostProductiveDay: userWorkPatterns.mostProductiveDay !== null ? getDayName(userWorkPatterns.mostProductiveDay) : "unknown",
-    mostProductiveTime: userWorkPatterns.mostProductiveHour !== null ? getTimeOfDay(userWorkPatterns.mostProductiveHour) : "unknown",
-    completionRate: Math.round(userWorkPatterns.completionRate || 0),
-    averageDuration: Math.round(
-      userWorkPatterns.completions.reduce((sum, c) => sum + c.duration, 0) / 
-      (userWorkPatterns.completions.length || 1)
-    ),
-    totalSessions: userWorkPatterns.completions.length,
-    interruptions: userWorkPatterns.interruptions.length,
-    streak: parseInt(currentStreakElement.textContent || "0"),
+    mostProductiveDay: calculateMostProductiveDay(weeklyData),
+    mostProductiveTime: calculateMostProductiveTime(weeklyData),
+    completionRate: calculateCompletionRate(weeklyData),
+    averageDuration: calculateAverageFocusDuration(weeklyData),
+    totalSessions: calculateTotalSessions(weeklyData),
+    interruptions: calculateInterruptions(weeklyData),
+    streak: calculateCurrentStreak(weeklyData),
     daysActive: Object.keys(weeklyData.dailyActivity || {}).length
   };
   
@@ -2602,7 +2559,7 @@ function generateAIInsights() {
   `;
   
   // Call the Google AI API to get personalized insights
-  fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+  fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -2906,37 +2863,37 @@ function prioritizeTasks() {
 async function analyzeTasks(tasks) {
   return new Promise((resolve, reject) => {
     // Show loading state while API is processing
-    const loadingMessage = 'Analyzing tasks and setting priorities...';
     
-    // Check if API key is the placeholder or empty - use heuristics instead
-    if (API_KEY === 'YOUR_GEMINI_API_KEY_HERE' || !API_KEY) {
-      console.log('No API key provided, using heuristic prioritization');
-      setTimeout(() => {
-        resolve(prioritizeWithHeuristics(tasks));
-      }, 800); // Reduced delay for better responsiveness
-      return;
-    }
+    // Format tasks for the prompt
+    const taskDescriptions = tasks.map(task => task.text);
     
-    // Prepare a prompt for Gemini
+    // Build a prompt for the AI to analyze tasks
     const prompt = `
-    I need help prioritizing these tasks. For each task, classify it as HIGH, MEDIUM, or LOW priority based on urgency and complexity.
-    Also provide a brief explanation for each priority assignment.
-    Return the results in this JSON format:
-    [
-      {
-        "task": "task text",
-        "priority": "HIGH", // or MEDIUM or LOW
-        "explanation": "brief explanation"
-      },
-      ...
-    ]
-    
-    Tasks:
-    ${tasks.join("\n")}
+      As a productivity assistant, prioritize the following tasks based on urgency and complexity.
+      Analyze each task and determine if it's HIGH, MEDIUM, or LOW priority.
+      
+      Tasks to prioritize:
+      ${taskDescriptions.map((task, index) => `${index + 1}. ${task}`).join('\n')}
+      
+      For each task, consider:
+      - Urgency: Does it contain words like "urgent", "ASAP", "deadline", "today", "tomorrow", "soon" (High urgency)?
+      - Complexity: Does it involve words like "analyze", "create", "develop", "research", "design" (High complexity)?
+      
+      Return your analysis as a JSON array with this format:
+      [
+        {
+          "task": "The exact task text",
+          "priority": "HIGH" or "MEDIUM" or "LOW",
+          "explanation": "Brief explanation about why this priority was assigned"
+        },
+        ...
+      ]
+      
+      Sort the results by priority (HIGH first, then MEDIUM, then LOW).
     `;
     
     // Call the Google AI API to prioritize tasks
-    fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent', {
+    fetch('https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -3015,8 +2972,8 @@ async function analyzeTasks(tasks) {
       }
     })
     .catch(error => {
-      console.error('Error with AI prioritization:', error);
-      // Fall back to heuristic method
+      console.error('Error calling AI for task prioritization:', error);
+      // Fall back to heuristic method if API call fails
       resolve(prioritizeWithHeuristics(tasks));
     });
   });
@@ -3940,31 +3897,3 @@ document.addEventListener('DOMContentLoaded', function() {
   // ... existing DOMContentLoaded code ...
   loadGamificationData();
 });
-
-// Add function to toggle fullscreen
-function toggleFullscreen() {
-  const container = document.getElementById('container');
-  const fullscreenIcon = document.querySelector('.bi-fullscreen, .bi-fullscreen-exit');
-  
-  if (!document.fullscreenElement) {
-    document.documentElement.requestFullscreen().catch(err => {
-      console.error(`Error attempting to enable fullscreen: ${err.message}`);
-    });
-    if (fullscreenIcon) {
-      fullscreenIcon.classList.replace('bi-fullscreen', 'bi-fullscreen-exit');
-    }
-    if (container) {
-      container.classList.add('fullscreen');
-    }
-  } else {
-    if (document.exitFullscreen) {
-      document.exitFullscreen();
-      if (fullscreenIcon) {
-        fullscreenIcon.classList.replace('bi-fullscreen-exit', 'bi-fullscreen');
-      }
-      if (container) {
-        container.classList.remove('fullscreen');
-      }
-    }
-  }
-}
